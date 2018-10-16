@@ -7,8 +7,7 @@ log = logging.getLogger(__name__)
 def init(client: Client):
 	@client.event
 	async def on_message(message: Message):
-		if message.content.startswith('test'):
-			log.debug('TEST')
+		if message.content.startswith('!cancer-level'):
 			await client.send_message(message.channel, 'TESTING')
 
 class Event:
