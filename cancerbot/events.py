@@ -1,9 +1,14 @@
+import logging
+
 from discord import Message, Client
+
+log = logging.getLogger(__name__)
 
 def init(client: Client):
 	@client.event
 	async def on_message(message: Message):
 		if message.content.startswith('test'):
+			log.debug('TEST')
 			await client.send_message(message.channel, 'TESTING')
 
 class Event:

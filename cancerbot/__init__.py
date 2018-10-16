@@ -3,8 +3,7 @@ import sys
 
 import discord
 
-from cancerbot import context, events, logging
-
+from cancerbot import context, events
 
 """
 This is the discord client that will be using to connect to the servers with.
@@ -12,12 +11,6 @@ This client should not be used directly, but if access is needed, it should be
 done through the context object.
 """
 _client = discord.Client()
-
-
-"""
-The logger that will be used throughout the application.
-"""
-logger = logging.init()
 
 
 """
