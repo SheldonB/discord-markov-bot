@@ -1,42 +1,33 @@
 import os
 import sys
-import logging
 
 import discord
 
-class CustomFormatter(logging.Formatter):
-    LEVEL_MAP = {logging.FATAL: 'F', logging.ERROR: 'E', logging.WARN: 'W', logging.INFO: 'I', logging.DEBUG: 'D'}
-
-    def format(self, record):
-        record.levelletter = self.LEVEL_MAP[record.levelno]
-        return super(CustomFormatter, self).format(record)
+from cancerbot import context, events, logging
 
 
-def init_logging():
-    fmt = '%(levelletter)s%(asctime)s.%(msecs).03d %(process)d %(filename)s:%(lineno)d] %(message)s'
-    datefmt = '%m%d %H:%M:%S'
-    formatter = CustomFormatter(fmt, datefmt)
-
-    console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setLevel(logging.DEBUG)
-    console_handler.setFormatter(formatter)
-
-    root = logging.getLogger()
-    root.setLevel(logging.DEBUG)
-    root.addHandler(console_handler)
-
-    # Explicitly tell these libraries to shut up
-    logging.getLogger('discord').setLevel(logging.WARN)
-    logging.getLogger('websockets').setLevel(logging.WARN)
-
-    return logging.getLogger(__name__)
+"""
+This is the discord client that will be using to connect to the servers with.
+This client should not be used directly, but if access is needed, it should be
+done through the context object.
+"""
+_client = discord.Client()
 
 
-client = discord.Client()
-logger = init_logging()
+"""
+The logger that will be used throughout the application.
+"""
+logger = logging.init()
 
 
-@client.event
-async def on_message(message: discord.Message):
-    if message.content.startswith('test'):
-        await client.send_message(message.channel, 'TESTING')
+"""
+Register our events against the client.
+"""
+events.init(_client)
+
+
+"""
+The overlying context of what our app is, this will have access to the client,
+and any other information that could be important about our application.
+"""
+context = context.BotContext(_client)

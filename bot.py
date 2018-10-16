@@ -1,6 +1,6 @@
 import os
 
-from cancerbot import client, logger
+from cancerbot import context, logger
 
 if __name__ == '__main__':
     token = os.environ.get('DISCORD_BOT_TOKEN')
@@ -10,4 +10,4 @@ if __name__ == '__main__':
         exit(-1)
 
     logger.info('Starting Discord Cancer Bot')
-    client.run(token)
+    context.getClient().run(token)
