@@ -1,6 +1,7 @@
 import logging
 
 from discord import Message, Client
+from cancerbot import context
 
 log = logging.getLogger(__name__)
 

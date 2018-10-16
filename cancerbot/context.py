@@ -11,3 +11,6 @@ class BotContext():
 
     def setCancerLevel(self, level):
         self.cancer_level = level
+
+    def getCancerLevel(self):
+        return self.cancer_level

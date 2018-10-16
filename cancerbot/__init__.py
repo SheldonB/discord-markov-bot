@@ -14,13 +14,14 @@ _client = discord.Client()
 
 
 """
-Register our events against the client.
-"""
-events.init(_client)
-
-
-"""
 The overlying context of what our app is, this will have access to the client,
 and any other information that could be important about our application.
 """
 context = context.BotContext(_client)
+
+
+"""
+Register our events against the client.
+"""
+events.init(_client)
+
