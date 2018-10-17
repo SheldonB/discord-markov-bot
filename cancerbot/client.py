@@ -6,6 +6,8 @@ import logging
 
 import discord
 
+from cancerbot.server import ServerManager
+
 log = logging.getLogger(__name__)
 
 class CancerBotClient:
@@ -15,10 +17,9 @@ class CancerBotClient:
         self.client = discord.Client()
 
         # The Bot Client Token
-        self.token = None
+        self.token: str = None
 
-        # TODO: This needs to be with the ServerContext
-        self.cancer_level = 1
+        self.server_manager = ServerManager()
 
         self.events = []
 
@@ -33,18 +34,21 @@ class CancerBotClient:
 
         @client.event
         async def on_server_join(server: discord.Server):
-            # TODO Add Server join impl
-            log.debug('New Server Added')
+            log.debug('A new server %s has been joined', server.name)
+            self.server_manager.add(server)
 
         @client.event
         async def on_server_remove(server: discord.Server):
-            # TODO Add Server remove impl
-            log.debug('Server Removed')
+            log.debug('Server %s has been removed', server.name)
+            self.server_manager.remove(server)
 
         @client.event
         async def on_server_update(server: discord.Server):
-            # TODO Add server update impl
-            log.debug('Server Updated')
+            # TODO: This might or might not need to be handled.
+            #       I need to have a better understanding of how
+            #       the discord client updates this. Like, does it return
+            #       a new object or does it just modify the reference?
+            log.debug('Server %s has been updated')
 
         @client.event
         async def on_server_available(server: discord.Server):
@@ -55,10 +59,13 @@ class CancerBotClient:
 
             For Example: When the bot has been restarted this is called
             for all previously connected servers.
-
-            # TODO: Impl
             """
-            log.debug('Server Now Available')
+            log.debug('The server %s has become available', server.name)
+            self.server_manager.add(server)
+
+        async def on_server_unavailable(server: discord.Server):
+            log.debug('The server %s has become unavailable', server.name)
+            self.server_manager.remove(server)
 
     def run(self, token: str):
         self.token = token
