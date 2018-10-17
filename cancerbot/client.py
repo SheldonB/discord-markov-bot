@@ -19,7 +19,7 @@ class CancerBotClient:
         # The Bot Client Token
         self.token: str = None
 
-        self.server_manager = ServerManager()
+        self.server_manager = ServerManager(self.client)
 
         self.events = []
 
@@ -35,7 +35,8 @@ class CancerBotClient:
         @client.event
         async def on_server_join(server: discord.Server):
             log.debug('A new server %s has been joined', server.name)
-            self.server_manager.add(server)
+            # Temporarily Pass Events here
+            self.server_manager.add(server, self.events)
 
         @client.event
         async def on_server_remove(server: discord.Server):
@@ -61,7 +62,8 @@ class CancerBotClient:
             for all previously connected servers.
             """
             log.debug('The server %s has become available', server.name)
-            self.server_manager.add(server)
+            # Temporarily Pass Events here
+            await self.server_manager.add(server, self.events)
 
         async def on_server_unavailable(server: discord.Server):
             log.debug('The server %s has become unavailable', server.name)
@@ -72,7 +74,7 @@ class CancerBotClient:
 
         self.client.run(token)
 
-    def event(self, func, *args, **kwargs):
+    def event(self, cancer_level, schedule):
         """
         Decorator for cancer bot events.
         Any event that should be executed by 
@@ -85,9 +87,27 @@ class CancerBotClient:
         to them, but if it does, the event needs some better context
         on the server the event is happening on.
         """
-        def new_func():
-            return func(self.client)
 
-        self.events.append(new_func)
+        def decorated(func):
+            # Hack for now to try and make this 
+            # prototype work
+            test = {
+                'func': func,
+                'cancer_level': cancer_level,
+                'schedule': schedule
+            }
+            self.events.append(test)
 
-        return new_func
+        return decorated
+        #     def wrapper(*args, **kwargs):
+        #         func(self.client, None)
+        #     return wrapper
+
+        # self.events.append(decorated)
+
+        # return decorated
+        #     return func(self.client)
+
+        # self.events.append(new_func)
+
+        # return new_func
