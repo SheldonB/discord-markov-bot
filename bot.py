@@ -2,7 +2,8 @@ import os
 import sys
 import logging
 
-from cancerbot import context
+# from cancerbot.client import cancerbot
+from cancerbot import cancerbot
 
 class CustomFormatter(logging.Formatter):
     LEVEL_MAP = {logging.FATAL: 'F', logging.ERROR: 'E', logging.WARN: 'W', logging.INFO: 'I', logging.DEBUG: 'D'}
@@ -42,4 +43,4 @@ if __name__ == '__main__':
         exit(-1)
 
     log.info('Starting Discord Cancer Bot')
-    context.getClient().run(token)
+    cancerbot.run(token)
