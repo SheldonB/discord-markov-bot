@@ -82,21 +82,17 @@ class CancerBotClient:
 
         The discord client will then be available to the event,
         on event execution.
-
-        TODO: I dont think an event needs the entire client available
-        to them, but if it does, the event needs some better context
-        on the server the event is happening on.
         """
 
         def decorated(func):
             # Hack for now to try and make this 
             # prototype work
-            test = {
-                'func': func,
-                'cancer_level': cancer_level,
-                'schedule': schedule
-            }
-            self.events.append(test)
+            # test = {
+            #     'func': func,
+            #     'cancer_level': cancer_level,
+            #     'schedule': schedule
+            # }
+            self.events.append((func, schedule))
 
         return decorated
         #     def wrapper(*args, **kwargs):

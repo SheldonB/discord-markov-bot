@@ -2,9 +2,9 @@ import time
 import logging
 import threading
 
-import schedule
-
 from discord import Server
+
+import cancerbot.schedule as schedule
 
 log = logging.getLogger(__name__)
 
@@ -18,31 +18,18 @@ class ServerContext:
 
         self.events = events
 
-        # for event in events:
-            # async def wrapper():
-            #     await event['func'](self.client, self.server)
-
-            # event['schedule'].do(wrapper)
-
+        for event in events:
+            async def wrapper():
+                await event[0](self.client, self.server)
+            test = wrapper
+            event[1].do(test)
 
     # Each server will have a schedule of events that are
     # registered to it on creation or level change
-    async def _run_schedule(self, interval=10):
-        # cease_run = threading.Event()
-
-        # class ScheduleThread(threading.Thread):
-        #     @classmethod
-        #     async def run(cls):
-        #         while not cease_run.is_set():
-        #             # schedule.run_pending()
-        #             await self.events[0]['func'](self.client, self.server)
-        #             time.sleep(interval)
-        
-        # continuous_thread = ScheduleThread()
-        # await continuous_thread.start()
-
-        # return cease_run
-        await self.events[0]['func'](self.client, self.server)
+    async def _run_schedule(self, interval=1):
+        while True:
+            await schedule.run_pending_async()
+            # time.sleep(interval)
 
     def getServer(self):
         return self.server
