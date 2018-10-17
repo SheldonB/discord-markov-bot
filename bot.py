@@ -2,7 +2,6 @@ import os
 import sys
 import logging
 
-# from cancerbot.client import cancerbot
 from cancerbot import cancerbot
 
 class CustomFormatter(logging.Formatter):
