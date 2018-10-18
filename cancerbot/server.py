@@ -10,16 +10,21 @@ log = logging.getLogger(__name__)
 
 
 class ServerContext:
-    def __init__(self, server: Server, client, cancer_lvl=1, events=[]):
-        self.client = client
+    def __init__(self, server: Server, discord_client, event_manager, cancer_lvl=1):
+        self.discord_client = discord_client
 
         self.server = server
 
+        self.event_manager = event_manager
+
         self._cancer_level = cancer_lvl
 
-        self.events = events
+        self.events = self.event_manager.get_events(cancer_lvl)
 
-        for event in events:
+        self._schedule_events()
+
+    def _schedule_events(self):
+        for event in self.events:
             func =  event[0]
             schedule = event[1]
 
@@ -39,12 +44,10 @@ class ServerContext:
         but this will work for now.
         """
         async def wrapper():
-            await func(self.client, self.server)
+            await func(self.discord_client, self.server)
         return wrapper
 
-    # Each server will have a schedule of events that are
-    # registered to it on creation or level change
-    async def _run_schedule(self, interval=1):
+    async def run_schedule(self, interval=1):
         while True:
             await schedule.run_pending_async()
             time.sleep(interval)
@@ -52,25 +55,38 @@ class ServerContext:
     def get_server(self):
         return self.server
 
-    @property
-    def cancer_level(self):
+    def get_cancer_level(self):
         return self._cancer_level
+
+    def set_cancer_level(self, value):
+        if value == self._cancer_level:
+            return
+
+        self._cancer_level = value
+
+        # Clear all scheduled jobs as we 
+        # are going to reschedule at a new level.
+        schedule.clear()
+        self.events = self.event_manager.get_events(value)
+        self._schedule_events()
 
 
 class ServerManager:
     def __init__(self, client):
+        # this is the client that is using the server manager
         self.client = client
 
-        self.servers: list = []
+        self.servers = {}
 
-    async def add(self, server: Server, events: list):
-        context = ServerContext(server, self.client, events=events)
-        self.servers.append(context)
+    def get_server_context(self, server: Server):
+        return self.servers.get(server.id)
 
-        await context._run_schedule()
+    async def add(self, server: Server):
+        context = ServerContext(server, self.client.get_discord_client(), event_manager=self.client.get_event_manager())
+        self.servers[server.id] = context
+
+        await context.run_schedule()
 
     def remove(self, server: Server):
-        for context in self.servers:
-            # I think this will work?
-            if context.get_server() == server:
-                self.servers.remove(context)
+        if server.id in self.servers:
+            del self.servers[server.id]
