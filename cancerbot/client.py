@@ -34,22 +34,24 @@ class CancerBotClient:
 
         @client.event
         async def on_server_join(server: discord.Server):
-            log.debug('A new server %s has been joined', server.name)
+            log.info('A new server %s has been joined', server.name)
             # Temporarily Pass Events here
             self.server_manager.add(server, self.events)
 
         @client.event
         async def on_server_remove(server: discord.Server):
-            log.debug('Server %s has been removed', server.name)
+            log.info('Server %s has been removed', server.name)
             self.server_manager.remove(server)
 
         @client.event
         async def on_server_update(server: discord.Server):
-            # TODO: This might or might not need to be handled.
-            #       I need to have a better understanding of how
-            #       the discord client updates this. Like, does it return
-            #       a new object or does it just modify the reference?
-            log.debug('Server %s has been updated')
+            """
+            TODO: This might or might not need to be handled.
+                  I need to have a better understanding of how
+                  the discord client updates this. Like, does it return
+                  a new object or does it just modify the reference?
+            """
+            log.info('Server %s has been updated')
 
         @client.event
         async def on_server_available(server: discord.Server):
@@ -61,15 +63,20 @@ class CancerBotClient:
             For Example: When the bot has been restarted this is called
             for all previously connected servers.
             """
-            log.debug('The server %s has become available', server.name)
+            log.info('The server %s has become available', server.name)
             # Temporarily Pass Events here
             await self.server_manager.add(server, self.events)
 
         async def on_server_unavailable(server: discord.Server):
-            log.debug('The server %s has become unavailable', server.name)
+            log.info('The server %s has become unavailable', server.name)
             self.server_manager.remove(server)
 
     def run(self, token: str):
+        """
+        Run the Cancer Bot.
+
+        :param token: The token provided by the discord application api.
+        """
         self.token = token
 
         self.client.run(token)
@@ -80,30 +87,11 @@ class CancerBotClient:
         Any event that should be executed by 
         the bot should be decorated with this.
 
-        The discord client will then be available to the event,
-        on event execution.
+        The discord client object, and the server object
+        will then be available to the event function.
         """
 
         def decorated(func):
-            # Hack for now to try and make this 
-            # prototype work
-            # test = {
-            #     'func': func,
-            #     'cancer_level': cancer_level,
-            #     'schedule': schedule
-            # }
             self.events.append((func, schedule))
 
         return decorated
-        #     def wrapper(*args, **kwargs):
-        #         func(self.client, None)
-        #     return wrapper
-
-        # self.events.append(decorated)
-
-        # return decorated
-        #     return func(self.client)
-
-        # self.events.append(new_func)
-
-        # return new_func
