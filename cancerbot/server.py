@@ -31,7 +31,7 @@ class ServerContext:
             await schedule.run_pending_async()
             # time.sleep(interval)
 
-    def getServer(self):
+    def get_server(self):
         return self.server
 
     @property
@@ -55,5 +55,5 @@ class ServerManager:
     def remove(self, server: Server):
         for context in self.servers:
             # I think this will work?
-            if context.getServer() == server:
+            if context.get_server() == server:
                 self.servers.remove(context)
