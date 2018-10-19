@@ -1,4 +1,5 @@
 import time
+import asyncio
 import logging
 import threading
 
@@ -50,7 +51,8 @@ class ServerContext:
     async def run_schedule(self, interval=1):
         while True:
             await schedule.run_pending_async()
-            time.sleep(interval)
+            await asyncio.sleep(interval)
+            # time.sleep(interval)
 
     def get_server(self):
         return self.server

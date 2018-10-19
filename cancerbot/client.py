@@ -5,17 +5,22 @@ import sys
 import logging
 
 import discord
+from discord.ext.commands import Bot as BotClient
 
 from cancerbot.server import ServerManager
 from cancerbot.event_manager import EventManager
 
 log = logging.getLogger(__name__)
 
+description = """This is a bot that perpetuates cancer to your Discord Server"""
+
+
 class CancerBotClient:
 
     def __init__(self):
+
         # The Discord Client
-        self.client = discord.Client()
+        self.client = BotClient(command_prefix='!cancer ', description=description)
 
         # The Bot Client Token
         self.token: str = None
@@ -26,30 +31,13 @@ class CancerBotClient:
 
         self._register_discord_events()
 
+
     def _register_discord_events(self):
         client = self.client
 
         @client.event
         async def on_message(message: discord.Message):
-            # This is temporary till I come up with
-            # a more elegant way to handle text commands
-            #
-            # I wonder if I could used docopt for parsing this and defining grammar?
-            if message.content.startswith('!cancer'):
-                contents = message.content.split()
-
-                if len(contents) <= 1:
-                    log.debug('Invalid command from server[name=%s]. No action was provided.', message.server.name)
-                    return
-
-                action = contents[1]
-
-                if action == 'set':
-                    # TODO: Do some boring validation
-                    level = contents[2]
-                    log.info('Received set command from server[name=%s]. Setting level to %s', message.server.name, level)
-                    server_context = self.server_manager.get_server_context(message.server)
-                    server_context.set_cancer_level(int(level))
+            await client.process_commands(message)
 
         @client.event
         async def on_server_join(server: discord.Server):
@@ -84,9 +72,25 @@ class CancerBotClient:
             log.info('The server %s has become available', server.name)
             await self.server_manager.add(server)
 
+        @client.event
         async def on_server_unavailable(server: discord.Server):
             log.info('The server %s has become unavailable', server.name)
             self.server_manager.remove(server)
+        
+        @client.command()
+        async def level(level: int):
+            # TODO Impl
+            await client.say('Blah')
+
+        @client.command()
+        async def start():
+            # TODO Impl
+            print('Starting')
+
+        @client.command()
+        async def stop():
+            #TODO Impl
+            print('Stopping')
 
     def get_discord_client(self):
         return self.client
