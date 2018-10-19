@@ -52,7 +52,6 @@ class ServerContext:
         while True:
             await schedule.run_pending_async()
             await asyncio.sleep(interval)
-            # time.sleep(interval)
 
     def get_server(self):
         return self.server

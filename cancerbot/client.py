@@ -77,21 +77,6 @@ class CancerBotClient:
             log.info('The server %s has become unavailable', server.name)
             self.server_manager.remove(server)
         
-        @client.command()
-        async def level(level: int):
-            # TODO Impl
-            await client.say('Blah')
-
-        @client.command()
-        async def start():
-            # TODO Impl
-            print('Starting')
-
-        @client.command()
-        async def stop():
-            #TODO Impl
-            print('Stopping')
-
     def get_discord_client(self):
         return self.client
 
