@@ -11,6 +11,9 @@ human-friendly syntax.
 Inspired by Addam Wiggins' article "Rethinking Cron" [1] and the
 "clockwork" Ruby module [2][3].
 
+This module was extended by Sheldon Burks to add asyncio support
+to the scheduling library.
+
 Features:
     - A simple to use API for scheduling jobs.
     - Very lightweight and no external dependencies.
