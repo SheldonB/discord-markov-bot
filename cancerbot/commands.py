@@ -35,12 +35,14 @@ async def level(context, level: int):
     log.debug('Setting level for %s to %d', server.name, level)
     server_context.set_cancer_level(level)
 
+    await client.say('Cancer level is now set to {}'.format(server_context.get_cancer_level()))
+
 
 @client.command(pass_context=True, help='Start the bot. Do this at your own risk.')
 async def start(context):
     server_context = get_server_context_from_client_context(context)
 
-    await client.say('Cancer Bot initiated. Hope you are ready ;)')
+    await client.say('Cancer Bot initiated. The current cancer level is {}. Hope you are ready ;)'.format(server_context.get_cancer_level()))
 
     await server_context.start_async()
 
