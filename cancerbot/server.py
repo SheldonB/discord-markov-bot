@@ -60,6 +60,14 @@ class ServerContext:
         return self._cancer_level
 
     def set_cancer_level(self, value):
+        """
+        Change the cancer level of the bot.
+
+        Note: this function has side effects right now,
+        it will cancel all currently running events and 
+        reschedule events at the new cancer level.
+        """
+
         if value == self._cancer_level:
             return
 
@@ -77,6 +85,8 @@ class ServerManager:
         # this is the client that is using the server manager
         self.client = client
 
+        # Store the ServerContext as a map from the
+        # server id to the context object.
         self.servers = {}
 
     def get_server_context(self, server: Server):
