@@ -70,7 +70,7 @@ class CancerBotClient:
             for all previously connected servers.
             """
             log.info('The server %s has become available', server.name)
-            await self.server_manager.add(server)
+            self.server_manager.add(server)
 
         @client.event
         async def on_server_unavailable(server: discord.Server):

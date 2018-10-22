@@ -24,6 +24,8 @@ class ServerContext:
 
         self._schedule_events()
 
+        self.should_cancel = False
+
     def _schedule_events(self):
         for event in self.events:
             func =  event[0]
@@ -48,10 +50,20 @@ class ServerContext:
             await func(self.discord_client, self.server)
         return wrapper
 
-    async def run_schedule(self, interval=1):
+    async def start_async(self, interval=1):
         while True:
+            # If the sever had been stopped,
+            # cancel the loop, and reset the stopped flag.
+            if self.should_cancel:
+                self.should_cancel = False
+                break
+
             await schedule.run_pending_async()
             await asyncio.sleep(interval)
+
+    def stop(self):
+        schedule.clear()
+        self.should_cancel = True
 
     def get_server(self):
         return self.server
@@ -92,11 +104,9 @@ class ServerManager:
     def get_server_context(self, server: Server):
         return self.servers.get(server.id)
 
-    async def add(self, server: Server):
+    def add(self, server: Server):
         context = ServerContext(server, self.client.get_discord_client(), event_manager=self.client.get_event_manager())
         self.servers[server.id] = context
-
-        await context.run_schedule()
 
     def remove(self, server: Server):
         if server.id in self.servers:
