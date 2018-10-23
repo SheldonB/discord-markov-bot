@@ -77,15 +77,17 @@ async def sing():
     await asyncio.sleep(2)
     await client.say('Country Roads')
 
+# Temporarily exposing this here so
+# so the file wont be read every time the
+# command is called
+with open('./sanatized_data.txt') as f:
+    text = f.read()
+
+model = markovify.Text(text)
+
 @client.command(help='The bot will say something')
 async def say():
-    with open('./sanatized_data.txt') as f:
-        text = f.read()
-
-    model = markovify.Text(text)
-
     sentence = model.make_sentence()
-
     await client.say(sentence)
 
 
