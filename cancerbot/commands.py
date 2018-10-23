@@ -1,6 +1,8 @@
 import asyncio
 import logging
 
+import markovify
+
 from cancerbot import cancerbot
 
 log = logging.getLogger(__name__)
@@ -74,5 +76,16 @@ async def sing():
     await client.say('Take me home')
     await asyncio.sleep(2)
     await client.say('Country Roads')
+
+@client.command(help='The bot will say something')
+async def say():
+    with open('./sanatized_data.txt') as f:
+        text = f.read()
+
+    model = markovify.Text(text)
+
+    sentence = model.make_sentence()
+
+    await client.say(sentence)
 
 
