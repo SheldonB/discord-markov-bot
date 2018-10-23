@@ -21,9 +21,14 @@ def init_logging():
     console_handler.setLevel(logging.DEBUG)
     console_handler.setFormatter(formatter)
 
+    file_handler = logging.FileHandler('log.txt')
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(formatter)
+
     root = logging.getLogger()
     root.setLevel(logging.DEBUG)
     root.addHandler(console_handler)
+    root.addHandler(file_handler)
 
     # Explicitly tell these libraries to shut up
     logging.getLogger('discord').setLevel(logging.WARN)
