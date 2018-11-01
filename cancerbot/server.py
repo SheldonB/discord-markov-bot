@@ -40,7 +40,7 @@ class ServerContext:
             for user in self.server.members:
                 datastore.add_user(user)
 
-            log.debug('New Server [%s]. Downloading last 10,000 messages', self.server.name)
+            log.debug('New Server [%s]. Downloading last 50,000 messages', self.server.name)
             await self._seed_messages()
             
         else:
@@ -59,7 +59,7 @@ class ServerContext:
         channel = discord.utils.get(self.server.channels, type=discord.ChannelType.text)
         discord_client = self.client.get_discord_client()
 
-        async for message in discord_client.logs_from(channel, limit=10000):
+        async for message in discord_client.logs_from(channel, limit=50000):
             datastore.add_message(message)
 
     @property
