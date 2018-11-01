@@ -5,10 +5,10 @@ import sys
 import logging
 
 import discord
+
 from discord.ext.commands import Bot as BotClient
 
 from cancerbot.server import ServerManager
-from cancerbot.event_manager import EventManager
 
 log = logging.getLogger(__name__)
 
@@ -27,10 +27,7 @@ class CancerBotClient:
 
         self.server_manager = ServerManager(self)
 
-        self.event_manager = EventManager(self)
-
         self._register_discord_events()
-
 
     def _register_discord_events(self):
         client = self.client
@@ -83,9 +80,6 @@ class CancerBotClient:
     def get_server_manager(self):
         return self.server_manager
 
-    def get_event_manager(self):
-        return self.event_manager
-
     def run(self, token: str):
         """
         Run the Cancer Bot.
@@ -95,18 +89,3 @@ class CancerBotClient:
         self.token = token
 
         self.client.run(token)
-
-    def event(self, cancer_level, schedule):
-        """
-        Decorator for cancer bot events.
-        Any event that should be executed by 
-        the bot should be decorated with this.
-
-        The discord client object, and the server object
-        will then be available to the event function.
-        """
-
-        def decorated(func):
-            self.event_manager.register((func, schedule, cancer_level))
-
-        return decorated
