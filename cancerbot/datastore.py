@@ -36,7 +36,7 @@ def update_server(server):
 
 
 def add_message(message):
-    server_key = client.key('User', message.author.id)
+    server_key = client.key('Server', message.server.id)
     message_key = client.key('Message', message.id, parent=server_key)
 
     msg = datastore.Entity(key=message_key)
@@ -44,3 +44,14 @@ def add_message(message):
     msg['content'] = message.content
 
     client.put(msg)
+
+
+def get_messages_by_server(server):
+    server_key = client.key('Server', server.id)
+    query = client.query(kind='Message', ancestor=server_key)
+
+    return list(query.fetch())
+
+
+def get_messages_by_user(user):
+    return

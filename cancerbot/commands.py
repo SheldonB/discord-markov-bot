@@ -21,17 +21,18 @@ client = cancerbot.get_discord_client()
 def get_server_context_from_client_context(context):
     return cancerbot.get_server_manager().get_server_context(context.message.server)
 
-# Temporarily exposing this here so
-# so the file wont be read every time the
-# command is called
-with open('./sanatized_data.txt') as f:
-    text = f.read()
+@client.command(pass_context=True, help='The bot will say something')
+async def say(context):
+    server_context = get_server_context_from_client_context(context)
 
-model = markovify.Text(text)
+    log.debug('Bot issued say command on server %s', server_context.server.name)
 
-@client.command(help='The bot will say something')
-async def say():
-    sentence = model.make_sentence()
+    sentence = server_context.markov.make_sentence_server()
+
+    if sentence is None:
+        await client.say('Unable to generate message. This is probably due to a lack of seed data.')
+        return
+
     await client.say(sentence)
 
 

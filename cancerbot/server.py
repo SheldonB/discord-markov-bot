@@ -24,9 +24,9 @@ class ServerContext:
     def __init__(self, client, server):
         self.client = client
 
-        self.server = server
+        self._server = server
 
-        self.markov_manager = markov.MarkovManager()
+        self.markov_manager = markov.MarkovManager(server)
 
     # TODO: This is going to be temporary till
     # a better way to handle server initialization
@@ -62,8 +62,13 @@ class ServerContext:
         async for message in discord_client.logs_from(channel, limit=10000):
             datastore.add_message(message)
 
-    def get_server(self):
-        return self.server
+    @property
+    def server(self):
+        return self._server
+
+    @property
+    def markov(self):
+        return self.markov_manager
 
 
 class ServerManager:
