@@ -6,7 +6,10 @@ import logging
 
 import discord
 
+from discord import ChannelType
 from discord.ext.commands import Bot as BotClient
+
+import cancerbot.datastore as datastore
 
 from cancerbot.server import ServerManager
 
@@ -67,7 +70,7 @@ class CancerBotClient:
             for all previously connected servers.
             """
             log.info('The server %s has become available', server.name)
-            self.server_manager.add(server)
+            await self.server_manager.add(server)
 
         @client.event
         async def on_server_unavailable(server: discord.Server):
