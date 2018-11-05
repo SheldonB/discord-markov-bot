@@ -27,8 +27,8 @@ class MarkovManager:
 
     ALL_KEY = '__ALL__'
 
-    def __init__(self, server):
-        self.server = server
+    def __init__(self, server_context):
+        self.server_context = server_context
 
         self.cache_chain = {}
 
@@ -36,16 +36,21 @@ class MarkovManager:
         log.debug('Generating Markov Sentence based off entire server text')
 
         if self.ALL_KEY not in self.cache_chain:
-            messages = datastore.get_messages_by_server(self.server)
+            log.debug('Markov Chain for server %s not found in cache. Generating it.', self.server_context.server.name)
 
-            content = [message['content'] for message in messages]            
+            messages = datastore.get_messages_by_server(self.server_context.server)
+
+            bot_user = self.server_context.client.discord_client.user
+
+            # Get Messages that are a certain length, not a command, and not from the bot itself.
+            content = [message['content'] for message in messages
+                if message['user_id'] != bot_user.id and len(message['content']) > 15 and not message['content'].startswith('!')]
 
             chain = CustomMarkovText(content)
 
             self.cache_chain[self.ALL_KEY] = chain
 
         return self.cache_chain[self.ALL_KEY].make_sentence()
-
 
 
     def make_sentence_user(self, user):

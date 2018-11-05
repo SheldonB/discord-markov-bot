@@ -16,10 +16,10 @@ in the CancerBotClient class, but I was having a little
 trouble getting that to work initially. That way we can
 hide the actual discord client implementation from this.
 """
-client = cancerbot.get_discord_client()
+client = cancerbot.discord_client
 
 def get_server_context_from_client_context(context):
-    return cancerbot.get_server_manager().get_server_context(context.message.server)
+    return cancerbot.server_manager.get_server_context(context.message.server)
 
 @client.command(pass_context=True, help='The bot will say something')
 async def say(context):

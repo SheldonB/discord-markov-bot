@@ -1,57 +1,58 @@
+import logging
 import datetime
 
-from google.cloud import datastore
+from tinydb import TinyDB, Query
 
-client = datastore.Client()
+log = logging.getLogger(__name__)
+
+db = TinyDB('bot_db.json')
 
 def does_server_exist(server):
-    key = client.key('Server', server.id)
+    table = db.table('Server')
 
-    entity = client.get(key)
+    server_query = Query()
+    record = table.search(server_query.id == server.id)
 
-    return entity is None
-
-
-def add_user(user):
-    server_key = client.key('Server', user.server.id)
-    user_key = client.key('User', user.id, parent=server_key)
-
-    entity = datastore.Entity(key=user_key)
-
-    entity['name'] = user.name
-
-    client.put(entity)
+    return len(record) > 0
 
 
 def update_server(server):
-    key = client.key('Server', server.id)
+    table = db.table('Server')
 
-    entity = datastore.Entity(key=key)
+    log.debug('Updating Server Info for %s(%s)', server.name, server.id)
 
-    entity['name'] = server.name
+    server_query = Query()
+    table.upsert({'id': server.id, 'name': server.name, 'last_connected': str(datetime.datetime.now())}, server_query.id == server.id)
 
-    entity['last_connected'] = datetime.datetime.now()
 
-    client.put(entity)
+def add_user(user):
+    table = db.table('User')
+
+    log.debug('Updating user %s(%s)', user.name, user.id)
+
+    table.upsert({ 'id': user.id, 'name': user.name}, Query().id == user.id)
 
 
 def add_message(message):
-    server_key = client.key('Server', message.server.id)
-    message_key = client.key('Message', message.id, parent=server_key)
+    table = db.table('Message')
 
-    msg = datastore.Entity(key=message_key)
+    server = message.server
+    user = message.author
 
-    msg['content'] = message.content
+    log.debug('Inserting new message(%s) from %s(%s) for server %s(%s)', message.id, user.name, user.id, server.name, server.id)
 
-    client.put(msg)
+    table.insert({'server_id': server.id, 'user_id': user.id, 'content': message.content})
 
 
 def get_messages_by_server(server):
-    server_key = client.key('Server', server.id)
-    query = client.query(kind='Message', ancestor=server_key)
+    table = db.table('Message')
 
-    return list(query.fetch())
+    query = Query()
+    records = table.search(query.server_id == server.id)
+
+    return records
+
+# def get_messages_by_user(user):
+#     return
 
 
-def get_messages_by_user(user):
-    return

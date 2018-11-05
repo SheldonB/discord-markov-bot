@@ -4,3 +4,5 @@ venv/
 *.pyc
 
 log.txt
+
+bot_db.json

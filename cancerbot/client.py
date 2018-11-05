@@ -28,7 +28,7 @@ class CancerBotClient:
         # The Bot Client Token
         self.token: str = None
 
-        self.server_manager = ServerManager(self)
+        self._server_manager = ServerManager(self)
 
         self._register_discord_events()
 
@@ -76,13 +76,15 @@ class CancerBotClient:
         async def on_server_unavailable(server: discord.Server):
             log.info('The server %s has become unavailable', server.name)
             self.server_manager.remove(server)
-        
-    def get_discord_client(self):
+
+    @property
+    def discord_client(self):
         return self.client
 
-    def get_server_manager(self):
-        return self.server_manager
-
+    @property
+    def server_manager(self):
+        return self._server_manager
+        
     def run(self, token: str):
         """
         Run the Cancer Bot.

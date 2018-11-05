@@ -22,11 +22,11 @@ class ServerContext:
     :param server: The server this context is pertaining too.
     """
     def __init__(self, client, server):
-        self.client = client
+        self._client = client
 
         self._server = server
 
-        self.markov_manager = markov.MarkovManager(server)
+        self.markov_manager = markov.MarkovManager(self)
 
     # TODO: This is going to be temporary till
     # a better way to handle server initialization
@@ -50,17 +50,21 @@ class ServerContext:
                 datastore.add_user(user)
 
     def is_new_server(self):
-        return datastore.does_server_exist(self.server)
+        return not datastore.does_server_exist(self.server)
 
     async def _seed_messages(self):
         # TODO: Figure out better way to handle channels
         # This will just get the first text channel in the channel list, which the user
         # could not want.
         channel = discord.utils.get(self.server.channels, type=discord.ChannelType.text)
-        discord_client = self.client.get_discord_client()
+        discord_client = self.client.discord_client
 
         async for message in discord_client.logs_from(channel, limit=50000):
             datastore.add_message(message)
+
+    @property
+    def client(self):
+        return self._client
 
     @property
     def server(self):
