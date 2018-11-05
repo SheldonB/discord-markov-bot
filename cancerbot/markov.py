@@ -33,6 +33,8 @@ class MarkovManager:
         self.cache_chain = {}
 
     def make_sentence_server(self):
+        # TODO: Need a way to make sure that this cannot be called if all the
+        # messages have not been downloaded from the server.
         log.debug('Generating Markov Sentence based off entire server text')
 
         if self.ALL_KEY not in self.cache_chain:
@@ -40,11 +42,7 @@ class MarkovManager:
 
             messages = datastore.get_messages_by_server(self.server_context.server)
 
-            bot_user = self.server_context.client.discord_client.user
-
-            # Get Messages that are a certain length, not a command, and not from the bot itself.
-            content = [message['content'] for message in messages
-                if message['user_id'] != bot_user.id and len(message['content']) > 15 and not message['content'].startswith('!')]
+            content = [message['content'] for message in messages]
 
             chain = CustomMarkovText(content)
 

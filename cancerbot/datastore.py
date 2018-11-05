@@ -10,10 +10,9 @@ db = TinyDB('bot_db.json')
 def does_server_exist(server):
     table = db.table('Server')
 
-    server_query = Query()
-    record = table.search(server_query.id == server.id)
+    record = table.get(Query().id == server.id)
 
-    return len(record) > 0
+    return record is not None
 
 
 def update_server(server):

@@ -59,8 +59,13 @@ class ServerContext:
         channel = discord.utils.get(self.server.channels, type=discord.ChannelType.text)
         discord_client = self.client.discord_client
 
+        bot_user = self.client.discord_client.user
         async for message in discord_client.logs_from(channel, limit=50000):
-            datastore.add_message(message)
+            content = message.content
+
+            # Conditions for us to insert a message into the database.
+            if message.author.id != bot_user.id and message.author.name != 'Cancer Bot' and len(content) > 15 and not content.startswith('!'):
+                datastore.add_message(message)
 
     @property
     def client(self):
