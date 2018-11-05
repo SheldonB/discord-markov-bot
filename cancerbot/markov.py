@@ -70,6 +70,9 @@ class MarkovManager:
                 
                 content.append(data)
 
+            if len(content) == 0:
+                return None
+
             chain = markovify.Text(content)
 
             self.cache_chain[user] = chain
