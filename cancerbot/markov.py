@@ -59,9 +59,18 @@ class MarkovManager:
 
             messages = datastore.get_messages_by_username(user)
 
-            content = [message['content'] for message in messages]
+            # content = [message['content'] for message in messages]
+            content = []
+            for message in messages:
+                data = message['content']
 
-            chain = CustomMarkovText(content)
+                if not data.endswith(('.', '?', '!')):
+                    data += '.'
+                
+                content.append(data)
+
+            # chain = CustomMarkovText(content)
+            chain = markovify.Text(content)
 
             self.cache_chain[user] = chain
 

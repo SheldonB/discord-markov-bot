@@ -29,7 +29,7 @@ def add_user(user):
 
     log.debug('Updating user %s(%s)', user.name, user.id)
 
-    table.upsert({'id': user.id, 'name': user.name}, Query().id == user.id)
+    table.upsert({'id': user.id, 'name': user.name.lower()}, Query().id == user.id)
 
 def get_user_by_username(username):
     table = db.table('User')

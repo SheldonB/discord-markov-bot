@@ -30,7 +30,7 @@ async def say(context, user: str = None):
 
         sentence = server_context.markov.make_sentence_server()
     else:
-        sentence = server_context.markov.make_sentence_user(user)
+        sentence = server_context.markov.make_sentence_user(user.lower())
 
     if user is not None and sentence is None:
         await client.say('Unable to generate message. This user either does not exist, or has not sent enough messages.')
