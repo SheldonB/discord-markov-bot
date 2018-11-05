@@ -48,7 +48,7 @@ class MarkovManager:
 
             self.cache_chain[self.ALL_KEY] = chain
 
-        return self.cache_chain[self.ALL_KEY].make_sentence()
+        return self.cache_chain[self.ALL_KEY].make_sentence(tries=150)
 
 
     def make_sentence_user(self, user):
@@ -59,7 +59,8 @@ class MarkovManager:
 
             messages = datastore.get_messages_by_username(user)
 
-            # content = [message['content'] for message in messages]
+            # Doing this data prep here for now, till I can
+            # do some more testing with the custom generator
             content = []
             for message in messages:
                 data = message['content']
@@ -69,9 +70,8 @@ class MarkovManager:
                 
                 content.append(data)
 
-            # chain = CustomMarkovText(content)
             chain = markovify.Text(content)
 
             self.cache_chain[user] = chain
 
-        return self.cache_chain[user].make_sentence()
+        return self.cache_chain[user].make_sentence(tries=150)
