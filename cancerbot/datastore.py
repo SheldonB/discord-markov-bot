@@ -29,8 +29,12 @@ def add_user(user):
 
     log.debug('Updating user %s(%s)', user.name, user.id)
 
-    table.upsert({ 'id': user.id, 'name': user.name}, Query().id == user.id)
+    table.upsert({'id': user.id, 'name': user.name}, Query().id == user.id)
 
+def get_user_by_username(username):
+    table = db.table('User')
+
+    return table.get(Query().name == username)
 
 def add_message(message):
     table = db.table('Message')
@@ -51,7 +55,21 @@ def get_messages_by_server(server):
 
     return records
 
-# def get_messages_by_user(user):
-#     return
+
+def get_messages_by_user_id(user_id):
+    table = db.table('Message')
+
+    return table.search(Query().user_id == user_id)
+
+
+def get_messages_by_username(username):
+    user = get_user_by_username(username)
+
+    if user is None:
+        log.debug('User with username=%s not found in database', username)
+        return []
+
+    return get_messages_by_user_id(user['id'])
+
 
 

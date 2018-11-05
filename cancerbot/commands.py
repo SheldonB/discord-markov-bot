@@ -22,12 +22,19 @@ def get_server_context_from_client_context(context):
     return cancerbot.server_manager.get_server_context(context.message.server)
 
 @client.command(pass_context=True, help='The bot will say something')
-async def say(context):
+async def say(context, user: str = None):
     server_context = get_server_context_from_client_context(context)
 
-    log.debug('Bot issued say command on server %s', server_context.server.name)
+    if user is None:
+        log.debug('Bot issued say command on server %s', server_context.server.name)
 
-    sentence = server_context.markov.make_sentence_server()
+        sentence = server_context.markov.make_sentence_server()
+    else:
+        sentence = server_context.markov.make_sentence_user(user)
+
+    if user is not None and sentence is None:
+        await client.say('Unable to generate message. This user either does not exist, or has not sent enough messages.')
+        return
 
     if sentence is None:
         await client.say('Unable to generate message. This is probably due to a lack of seed data.')

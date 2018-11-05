@@ -64,6 +64,7 @@ class ServerContext:
             content = message.content
 
             # Conditions for us to insert a message into the database.
+            # TODO: Look at adding messages in bulk
             if message.author.id != bot_user.id and message.author.name != 'Cancer Bot' and len(content) > 15 and not content.startswith('!'):
                 datastore.add_message(message)
 
