@@ -58,13 +58,18 @@ class ServerContext:
         # could not want.
         channel = discord.utils.get(self.server.channels, type=discord.ChannelType.text)
 
-        bot_user = self.client.user
         async for message in self.client.logs_from(channel, limit=50000):
             content = message.content
+            author = message.author
 
             # Conditions for us to insert a message into the database.
+            # 1. The author is not a bot.
+            # 2. The message is greater than 15 characters long.
+            # 3. The message does not start with '!' (This should weed out most commands)
+            # 4. The message is not a link.
+
             # TODO: Look at adding messages in bulk
-            if message.author.id != bot_user.id and message.author.name != 'Cancer Bot' and len(content) > 15 and not content.startswith('!'):
+            if not author.bot and len(content) > 15 and not content.startswith(('!', 'http')):
                 datastore.add_message(message)
 
     @property
