@@ -75,6 +75,7 @@ class ServerContext:
 
             if len(bulk_data) >= BULK_SIZE:
                 datastore.add_messages(bulk_data)
+                bulk_data.clear()
 
         if len(bulk_data) > 0:
             datastore.add_messages(bulk_data)
