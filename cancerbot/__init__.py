@@ -1,5 +1,5 @@
-from cancerbot.client import CancerBotClient
+from cancerbot.client import CustomBotClient
 
-cancerbot = CancerBotClient()
+cancerbot = CustomBotClient()
 
 from cancerbot.commands import *

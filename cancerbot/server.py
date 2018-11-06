@@ -57,10 +57,9 @@ class ServerContext:
         # This will just get the first text channel in the channel list, which the user
         # could not want.
         channel = discord.utils.get(self.server.channels, type=discord.ChannelType.text)
-        discord_client = self.client.discord_client
 
-        bot_user = self.client.discord_client.user
-        async for message in discord_client.logs_from(channel, limit=50000):
+        bot_user = self.client.user
+        async for message in self.client.logs_from(channel, limit=50000):
             content = message.content
 
             # Conditions for us to insert a message into the database.
