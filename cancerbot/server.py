@@ -26,6 +26,8 @@ class ServerContext:
 
         self._server = server
 
+        self._is_ready = False
+
         self.markov_manager = markov.MarkovManager(self)
 
     # TODO: This is going to be temporary till
@@ -33,7 +35,6 @@ class ServerContext:
     # is determined, cant really do this in the
     # constructor since is it async
     async def init(self):
-
         if self.is_new_server():
             datastore.update_server(self.server)
 
@@ -48,6 +49,9 @@ class ServerContext:
 
             for user in self.server.members:
                 datastore.add_user(user)
+
+        log.info('%s data has been seeded. The server is ready to accept commands', self.server.name)
+        self._is_ready = True
 
     def is_new_server(self):
         return not datastore.does_server_exist(self.server)
@@ -79,6 +83,10 @@ class ServerContext:
 
         if len(bulk_data) > 0:
             datastore.add_messages(bulk_data)
+
+    @property
+    def is_ready(self):
+        return self._is_ready
 
     @property
     def client(self):
@@ -128,7 +136,9 @@ class ServerManager:
 
     def remove(self, server):
         """
-        
+        Remove a server from the connected servers map.
+
+        :param server: The discord server object.
         """
         if server.id in self.connected_servers:
             del self.connected_servers[server.id]
