@@ -33,8 +33,6 @@ class MarkovManager:
         self.cache_chain = {}
 
     def make_sentence_server(self):
-        # TODO: Need a way to make sure that this cannot be called if all the
-        # messages have not been downloaded from the server.
         log.debug('Generating Markov Sentence based off entire server text')
 
         if self.ALL_KEY not in self.cache_chain:
