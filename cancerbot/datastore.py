@@ -31,10 +31,12 @@ def add_user(user):
 
     table.upsert({'id': user.id, 'name': user.name.lower()}, Query().id == user.id)
 
+
 def get_user_by_username(username):
     table = db.table('User')
 
     return table.get(Query().name == username)
+
 
 def add_message(message):
     table = db.table('Message')
@@ -45,6 +47,16 @@ def add_message(message):
     log.debug('Inserting new message(%s) from %s(%s) for server %s(%s)', message.id, user.name, user.id, server.name, server.id)
 
     table.insert({'server_id': server.id, 'user_id': user.id, 'content': message.content})
+
+
+def add_messages(messages):
+    table = db.table('Message')
+
+    formatted_messages = [{'server_id': message.server.id, 'user_id': message.author.id, 'content': message.content} for message in messages]
+
+    log.debug('Inserting %d messages.', len(formatted_messages))
+
+    table.insert_multiple(formatted_messages)
 
 
 def get_messages_by_server(server):

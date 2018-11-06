@@ -58,6 +58,9 @@ class ServerContext:
         # could not want.
         channel = discord.utils.get(self.server.channels, type=discord.ChannelType.text)
 
+        BULK_SIZE = 500 
+        bulk_data = []
+
         async for message in self.client.logs_from(channel, limit=50000):
             content = message.content
             author = message.author
@@ -67,10 +70,14 @@ class ServerContext:
             # 2. The message is greater than 15 characters long.
             # 3. The message does not start with '!' (This should weed out most commands)
             # 4. The message is not a link.
-
-            # TODO: Look at adding messages in bulk
             if not author.bot and len(content) > 15 and not content.startswith(('!', 'http')):
-                datastore.add_message(message)
+                bulk_data.append(message)
+
+            if len(bulk_data) >= BULK_SIZE:
+                datastore.add_messages(bulk_data)
+
+        if len(bulk_data) > 0:
+            datastore.add_messages(bulk_data)
 
     @property
     def client(self):
