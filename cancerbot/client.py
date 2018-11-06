@@ -6,18 +6,16 @@ import logging
 
 import discord
 
-from discord import ChannelType
-from discord.ext.commands import Bot as BotClient
+from discord.ext.commands import Bot
 
-import cancerbot.datastore as datastore
-
+from cancerbot import datastore
 from cancerbot.server import ServerManager
 
 log = logging.getLogger(__name__)
 
 description = """This is a bot that perpetuates cancer to your Discord Server"""
 
-class CustomBotClient(BotClient):
+class CustomBotClient(Bot):
 
     def __init__(self):
         super().__init__(command_prefix='!cancer ', description=description)
