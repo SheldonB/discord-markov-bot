@@ -17,9 +17,7 @@ class CustomMarkovText(markovify.Text):
         return text
 
     def sentence_split(self, text):
-        lines = text.splitlines()
-
-        text = ' '.join([self._prepare_text(line) for line in lines if line.strip()])
+        text = self._prepare_text(text)
 
         return markovify.split_into_sentences(text)
 
@@ -57,21 +55,12 @@ class MarkovManager:
 
             messages = datastore.get_messages_by_username(user)
 
-            # Doing this data prep here for now, till I can
-            # do some more testing with the custom generator
-            content = []
-            for message in messages:
-                data = message['content']
-
-                if not data.endswith(('.', '?', '!')):
-                    data += '.'
-                
-                content.append(data)
+            content = [message['content'] for message in messages]
 
             if len(content) == 0:
                 return None
 
-            chain = markovify.Text(content)
+            chain = CustomMarkovText(content)
 
             self.cache_chain[user] = chain
 
