@@ -3,18 +3,27 @@ import logging
 
 import markovify
 
+from discord.ext.commands import core
+
 from cancerbot import cancerbot, datastore
 
 log = logging.getLogger(__name__)
 
-def get_server_context_from_client_context(context):
-    return cancerbot.server_manager.get_server_context(context.message.server)
+
+class CustomCommand(core.Command):
+    def __init__(self, name, callback, **kwargs):
+        super().__init__(name, callback, **kwargs)
+
+    async def invoke(self, ctx):
+        ctx.server_context = cancerbot.server_manager.get_server_context(ctx.message.server)
+        await super().invoke(ctx)
+
 
 # TODO: I wonder if there is a way to extend the way the context is passed in, and we could add our server
 # context as a property on that context object.
-@cancerbot.command(pass_context=True, help='Generate a Markov sentence based on the server chat history.')
+@cancerbot.command(cls=CustomCommand, pass_context=True, help='Generate a Markov sentence based on the server chat history.')
 async def say(context, user: str = None):
-    server_context = get_server_context_from_client_context(context)
+    server_context = context.server_context
 
     if not server_context.is_ready:
         await cancerbot.say('I am still learning from all your messages. Try again later.')
@@ -40,8 +49,6 @@ async def say(context, user: str = None):
         if sentence is None:
             await cancerbot.say('Unable to generate message for {}. This is probably because they have not sent enough messages.'.format(user))
             return
-
-
 
     await cancerbot.say(sentence)
 
