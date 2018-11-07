@@ -3,7 +3,7 @@ import logging
 
 import markovify
 
-from cancerbot import cancerbot
+from cancerbot import cancerbot, datastore
 
 log = logging.getLogger(__name__)
 
@@ -23,16 +23,25 @@ async def say(context, user: str = None):
     if user is None:
         log.debug('Bot issued say command on server %s', server_context.server.name)
         sentence = server_context.markov.make_sentence_server()
+
+        if sentence is None:
+            await cancerbot.say('Unable to generate message. This is probably due to a lack of messages on the server.')
+            return
+
     else:
-        sentence = server_context.markov.make_sentence_user(user.lower())
+        db_user = datastore.get_server_user(server_context.server.id, user)
 
-    if user is not None and sentence is None:
-        await cancerbot.say('Unable to generate message. This user either does not exist, or has not sent enough messages.')
-        return
+        if db_user is None:
+            await cancerbot.say('The user {} does not exist. Check your spelling and try again.'.format(user))
+            return
 
-    if sentence is None:
-        await cancerbot.say('Unable to generate message. This is probably due to a lack of seed data.')
-        return
+        sentence = server_context.markov.make_sentence_user(db_user)
+
+        if sentence is None:
+            await cancerbot.say('Unable to generate message for {}. This is probably because they have not sent enough messages.'.format(user))
+            return
+
+
 
     await cancerbot.say(sentence)
 

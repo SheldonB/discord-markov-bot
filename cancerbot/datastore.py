@@ -7,35 +7,39 @@ log = logging.getLogger(__name__)
 
 db = TinyDB('bot_db.json')
 
-def does_server_exist(server):
-    table = db.table('Server')
-
-    record = table.get(Query().id == server.id)
-
-    return record is not None
-
 
 def update_server(server):
     table = db.table('Server')
 
     log.debug('Updating Server Info for %s(%s)', server.name, server.id)
 
-    server_query = Query()
-    table.upsert({'id': server.id, 'name': server.name, 'last_connected': str(datetime.datetime.now())}, server_query.id == server.id)
+    record = {
+        'id': server.id,
+        'name': server.name,
+        'last_connected': str(datetime.datetime.now()),
+        'members': [{
+            'id': member.id,
+            'name': member.name.lower(),
+            'nickname': member.nick.lower() if member.nick is not None else member.nick
+        } for member in server.members]
+    }
+
+    table.upsert(record, Query().id == server.id)
 
 
-def add_user(user):
-    table = db.table('User')
-
-    log.debug('Updating user %s(%s)', user.name, user.id)
-
-    table.upsert({'id': user.id, 'name': user.name.lower()}, Query().id == user.id)
+def get_server(id):
+    table = db.table('Server')
+    return table.get(Query().id == id)
 
 
-def get_user_by_username(username):
-    table = db.table('User')
+def get_server_user(server_id, username):
+    server = get_server(server_id)
 
-    return table.get(Query().name == username)
+    # This will actually match on username and nickname,
+    # which is kind of wierd. 
+    for member in server['members']:
+        if member['name'] == username.lower() or member['nickname'] == username.lower():
+            return member
 
 
 def add_message(message):
@@ -59,29 +63,16 @@ def add_messages(messages):
     table.insert_multiple(formatted_messages)
 
 
-def get_messages_by_server(server):
+def get_messages_by_server(server_id):
     table = db.table('Message')
 
     query = Query()
-    records = table.search(query.server_id == server.id)
+    records = table.search(query.server_id == server_id)
 
     return records
 
 
-def get_messages_by_user_id(user_id):
+def get_messages_by_user(user_id):
     table = db.table('Message')
 
     return table.search(Query().user_id == user_id)
-
-
-def get_messages_by_username(username):
-    user = get_user_by_username(username)
-
-    if user is None:
-        log.debug('User with username=%s not found in database', username)
-        return []
-
-    return get_messages_by_user_id(user['id'])
-
-
-

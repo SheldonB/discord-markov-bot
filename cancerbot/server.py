@@ -38,23 +38,17 @@ class ServerContext:
         if self.is_new_server():
             datastore.update_server(self.server)
 
-            for user in self.server.members:
-                datastore.add_user(user)
-
             log.debug('New Server [%s]. Downloading last 50,000 messages', self.server.name)
             await self._seed_messages()
             
         else:
             datastore.update_server(self.server)
 
-            for user in self.server.members:
-                datastore.add_user(user)
-
         log.info('%s data has been seeded. The server is ready to accept commands', self.server.name)
         self._is_ready = True
 
     def is_new_server(self):
-        return not datastore.does_server_exist(self.server)
+        return datastore.get_server(self.server.id) is None
 
     async def _seed_messages(self):
         # TODO: Figure out better way to handle channels

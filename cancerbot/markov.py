@@ -36,7 +36,7 @@ class MarkovManager:
         if self.ALL_KEY not in self.cache_chain:
             log.debug('Markov Chain for server %s not found in cache. Generating it.', self.server_context.server.name)
 
-            messages = datastore.get_messages_by_server(self.server_context.server)
+            messages = datastore.get_messages_by_server(server_id=self.server_context.server.id)
 
             content = [message['content'] for message in messages]
 
@@ -48,12 +48,12 @@ class MarkovManager:
 
 
     def make_sentence_user(self, user):
-        log.debug('Generating Markov Sentence for user %s', user)
+        user_id = user['id']
 
-        if user not in self.cache_chain:
-            log.debug('Markov Chain for user %s from server %s not found in cache. Generating it.', user, self.server_context.server.name)
+        if user_id  not in self.cache_chain:
+            log.debug('Markov Chain for user %s from server %s not found in cache. Generating it.', user['name'], self.server_context.server.name)
 
-            messages = datastore.get_messages_by_username(user)
+            messages = datastore.get_messages_by_user(user_id=user_id)
 
             content = [message['content'] for message in messages]
 
@@ -62,6 +62,6 @@ class MarkovManager:
 
             chain = CustomMarkovText(content)
 
-            self.cache_chain[user] = chain
+            self.cache_chain[user_id] = chain
 
-        return self.cache_chain[user].make_sentence(tries=150)
+        return self.cache_chain[user_id].make_sentence(tries=150)
