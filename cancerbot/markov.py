@@ -44,8 +44,7 @@ class MarkovManager:
 
             self.cache_chain[self.ALL_KEY] = chain
 
-        return self.cache_chain[self.ALL_KEY].make_sentence(tries=150)
-
+        return self.cache_chain[self.ALL_KEY].make_short_sentence(500, min_chars=100, tries=150)
 
     def make_sentence_user(self, user):
         user_id = user['id']
@@ -64,4 +63,4 @@ class MarkovManager:
 
             self.cache_chain[user_id] = chain
 
-        return self.cache_chain[user_id].make_sentence(tries=150)
+        return self.cache_chain[user_id].make_short_sentence(500, min_chars=100, tries=150)
