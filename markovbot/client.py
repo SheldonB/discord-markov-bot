@@ -1,5 +1,3 @@
-# pylint: disable=W0612
-
 import os
 import sys
 import logging
