@@ -5,7 +5,7 @@ import threading
 
 import discord
 
-from cancerbot import datastore, markov
+from markovbot import datastore, markov
 
 log = logging.getLogger(__name__)
 

@@ -2,7 +2,7 @@ import logging
 
 import markovify
 
-from cancerbot import datastore
+from markovbot import datastore
 
 log = logging.getLogger(__name__)
 

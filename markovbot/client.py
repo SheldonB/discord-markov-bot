@@ -8,16 +8,20 @@ import discord
 
 from discord.ext.commands import Bot
 
-from cancerbot import datastore
-from cancerbot.server import ServerManager
+from markovbot import datastore
+from markovbot.server import ServerManager
 
 log = logging.getLogger(__name__)
 
-description = """This is a bot that perpetuates cancer to your Discord Server"""
+description = """Generate sentences based off of a Markov model of the text chat of your discord server"""
 
 class CustomBotClient(Bot):
-
+    """
+    Extends the discord.py Bot implementation and
+    overrides events for custom logic and handeling.
+    """
     def __init__(self):
+        #TODO: Make Command Prefix configurable
         super().__init__(command_prefix='!cancer ', description=description)
 
         self._server_manager = ServerManager(self)
