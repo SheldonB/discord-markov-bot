@@ -13,8 +13,8 @@ class CustomFormatter(logging.Formatter):
 
 
 def init_logging():
-    fmt = '%(levelletter)s%(asctime)s.%(msecs).03d %(process)d %(filename)s:%(lineno)d] %(message)s'
-    datefmt = '%m%d %H:%M:%S'
+    fmt = '%(levelletter)s %(asctime)s.%(msecs).03d %(process)d %(filename)s:%(lineno)d] %(message)s'
+    datefmt = '%m-%d-%y %H:%M:%S'
     formatter = CustomFormatter(fmt, datefmt)
 
     console_handler = logging.StreamHandler(sys.stdout)
