@@ -4,7 +4,7 @@ import logging
 
 import discord
 
-from discord.ext.commands import Bot
+from discord.ext.commands import Bot, core
 
 from markovbot import datastore
 from markovbot.server import ServerManager
@@ -12,6 +12,15 @@ from markovbot.server import ServerManager
 log = logging.getLogger(__name__)
 
 description = """Generate sentences based off of a Markov model of the text chat of your discord server"""
+
+class CustomCommand(core.Command):
+    def __init__(self, name, callback, **kwargs):
+        super().__init__(name, callback, **kwargs)
+
+    async def invoke(self, ctx):
+        ctx.server_context = markovbot.server_manager.get_server_context(ctx.message.server)
+        await super().invoke(ctx)
+
 
 class CustomBotClient(Bot):
     """
@@ -105,3 +114,15 @@ class CustomBotClient(Bot):
         """
         log.info('The server %s has become unavailable', server.name)
         self.server_manager.remove(server)
+
+    def command(self, *args, **kwargs):
+        """
+        Override the command decorator that is exposed by discord.py
+        so that we can inject our own CustomCommand class into it,
+        which adds the server context to the context of the command.
+        """
+        kwargs['cls'] = CustomCommand
+        return super().command(*args, **kwargs)
+
+
+markovbot = CustomBotClient()

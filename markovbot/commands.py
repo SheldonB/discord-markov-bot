@@ -10,18 +10,9 @@ from markovbot import markovbot, datastore
 log = logging.getLogger(__name__)
 
 
-class CustomCommand(core.Command):
-    def __init__(self, name, callback, **kwargs):
-        super().__init__(name, callback, **kwargs)
-
-    async def invoke(self, ctx):
-        ctx.server_context = markovbot.server_manager.get_server_context(ctx.message.server)
-        await super().invoke(ctx)
-
-
 # TODO: I wonder if there is a way to extend the way the context is passed in, and we could add our server
 # context as a property on that context object.
-@markovbot.command(cls=CustomCommand, pass_context=True, help='Generate a Markov sentence based on the server chat history.')
+@markovbot.command(pass_context=True, help='Generate a Markov sentence based on the server chat history.')
 async def say(context, user: str = None):
     server_context = context.server_context
 

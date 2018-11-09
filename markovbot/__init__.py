@@ -1,5 +1,3 @@
-from markovbot.client import CustomBotClient
-
-markovbot = CustomBotClient()
+from markovbot.core import markovbot
 
 from markovbot.commands import *
