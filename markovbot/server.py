@@ -65,13 +65,10 @@ class ServerContext:
 
             # Conditions for us to insert a message into the database.
             # 1. The author is not a bot.
-            # 2. The message is greater than 15 characters long.
+            # 2. The message is more than one word.
             # 3. The message does not start with '!' (This should weed out most commands)
             # 4. The message is not a link.
 
-            # if not author.bot and len(content) > 15 and not content.startswith(('!', 'http')):
-
-            # Testing the following rule: content is more than 1 word
             if not author.bot and len(content.split()) > 1 and not content.startswith(('!', 'http')):
                 bulk_data.append(message)
 
