@@ -47,4 +47,8 @@ if __name__ == '__main__':
         exit(-1)
 
     log.info('Starting Discord Cancer Bot')
-    markovbot.run(token)
+
+    try:
+        markovbot.run(token)
+    except:
+        log.error("Something went wrong during execution. Exiting....", exc_info=1)
