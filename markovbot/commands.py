@@ -65,8 +65,10 @@ async def mock(context, user: str = None):
             return
 
     else:
-        logs = markovbot.logs_from(server_context.message.channel, limit=20):
+        logs = markovbot.logs_from(server_context.message.channel, limit=20)
         sentence = logs[-1]
+
+        sentence = mockString(sentence)
         
     await markovbot.say(sentence)
 
