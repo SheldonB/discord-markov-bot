@@ -50,68 +50,65 @@ async def say(context, user: str = None):
 @markovbot.command(pass_context=True, help='Mock the last specified user message.')
 async def mock(context, user: str = None):
     server_context = context.server_context
+    targeted_user_id = str()
 
-    if not server_context.is_ready:
-        await markovbot.say('I am still learning from all your messages. Try again later.')
-        return
-
-    if user is None:
-        log.debug('Bot issued say command on server %s',
-                  server_context.server.name)
-        sentence = server_context.markov.make_sentence_server()
-
-        if sentence is None:
-            await markovbot.say('Unable to generate message. This is probably due to a lack of messages on the server.')
+    # Get member from server with selected username
+    for member in server_context.members:
+        if member.nick == user:
+            targeted_user_id = member.user.id
             return
 
-    else:
-        logs = markovbot.logs_from(server_context.message.channel, limit=20)
-        sentence = logs[-1]
+    # Get messages from user in current channel
+    logs = yield markovbot.logs_from(server_context.message.channel, limit=500)
+    logsByUser = list(filter(lambda log: log.author.user.id == targeted_user_id, logs))
 
-        sentence = mockString(sentence)
-        
+    # Get latest message from user
+    logsByUser.sort(key=lambda log: log.timestamp, reverse=True)
+
+    log = logsByUser[0]
+    sentence = mockString(log.content)
+
     await markovbot.say(sentence)
 
 
-def mockString(sentence):
+def mockString(sentence: str):
     if sentence is None:
         return
 
     # TODO: Might end up changing this to handle smaller strings.
-    print(len(sentence))
-    mockCount = random.randint(0, math.ceil(
+    mock_count = random.randint(0, math.ceil(
         len(sentence) - len(sentence) / 2))
-    sentenceMock = list(sentence.lower())
+    sentence_mock = list(sentence.lower())
 
     # TODO: Make a comparator array?
-    # elements = getRandomElements(sentenceMock, mockCount)
+    # elements = getRandomElements(sentence_mock, mock_count)
     # TODO: Probably need to rename these for clarity.
     i = 0
     j = 0
     k = 3
-    while j in range(0, mockCount) and k > 0:
+    while j in range(0, mock_count) and k > 0:
         # TODO: This could end up being too random and not get any chars.
         capitalize = bool(random.getrandbits(1))
-        val = str(sentenceMock[i])
+        val = str(sentence_mock[i])
         # Don't want to count a char mutation for spaces / integers / capitals.
-        if capitalize and sentenceMock[i] != ' ' and not (val.isdigit() or val.isupper()):
-            sentenceMock[i] = sentenceMock[i].upper()
+        if capitalize and sentence_mock[i] != ' ' and not (val.isdigit() or val.isupper()):
+            sentence_mock[i] = sentence_mock[i].upper()
             j += 1
         i += 1
-        # Restart at beginning of string if mockCount is not met.
+        # Restart at beginning of string if mock_count is not met.
         # Only allow k runs
-        if i == len(sentenceMock):
+        if i == len(sentence_mock):
             i = 0
             k -= 1
-    sentence = ''.join(str(e) for e in sentenceMock)
+    sentence = ''.join(str(e) for e in sentence_mock)
     return sentence
 
 # Leaving this for now since I'm working off master.
-# def getRandomElements(sentenceMock, mockCount):
+# def getRandomElements(sentence_mock, mock_count):
 #     result = []
 #     i = 0
-#     while i in range(0, mockCount):
-#         result.append(sentenceMock[math.floor(
-#             random.random() * sentenceMock.length)])
+#     while i in range(0, mock_count):
+#         result.append(sentence_mock[math.floor(
+#             random.random() * sentence_mock.length)])
 #         i += 1
 #     return result
