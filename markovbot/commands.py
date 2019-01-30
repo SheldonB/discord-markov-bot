@@ -60,9 +60,9 @@ async def mock(context, user: str = None):
 
         # Get member from server with selected username
         for member in server_context.server.members:
-            await markovbot.say('Member Nick: {}'.format(member.nick))
             if member.nick == user:
-                targeted_user_id = member.user.id
+                await markovbot.say('Member Nick: {}'.format(member.nick))
+                targeted_user_id = member.id
                 return
 
         # Get messages from user in current channel
