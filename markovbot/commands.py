@@ -50,30 +50,40 @@ async def say(context, user: str = None):
 @markovbot.command(pass_context=True, help='Mock the last specified user message.')
 async def mock(context, user: str = None):
     server_context = context.server_context
-    targeted_user_id = str()
 
-    # Get member from server with selected username
-    for member in server_context.server.members:
-        if member.nick == user:
-            targeted_user_id = member.user.id
-            return
+    if user is None:
+        await markovbot.say('Please specify a user')
+        return
 
-    # Get messages from user in current channel
-    logs = get_logs_from_channel(server_context.message.channel)
-    logsByUser = list(filter(lambda log: log.author.user.id == targeted_user_id, logs))
+    else:
+        targeted_user_id = str()
 
-    # Get latest message from user
-    logsByUser.sort(key=lambda log: log.timestamp, reverse=True)
+        # Get member from server with selected username
+        for member in server_context.server.members:
+            markovbot.say('Member Nick: {}'.format(member.nick))
+            if member.nick == user:
+                targeted_user_id = member.user.id
+                return
 
-    log = logsByUser[0]
-    sentence = mockString(log.content)
+        # Get messages from user in current channel
+        message_logs = get_logs_from_channel(server_context.message.channel)
+        logs_by_user = list(filter(
+            lambda message_log: message_log.author.id == targeted_user_id, message_logs))
+        markovbot.say('Filtered messages!')
+        # Get latest message from user
+        logs_by_user.sort(
+            key=lambda message_log: message_log.timestamp, reverse=True)
+        sentence = logs_by_user[0]
+        markovbot.say('Got Latest Message!')
 
     await markovbot.say(sentence)
+
 
 @asyncio.coroutine
 def get_logs_from_channel(channel):
     logs = yield from markovbot.logs_from(channel, limit=500)
     return logs
+
 
 def mockString(sentence: str):
     if sentence is None:
