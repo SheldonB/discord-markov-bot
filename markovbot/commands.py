@@ -53,7 +53,7 @@ async def mock(context, user: str = None):
     targeted_user_id = str()
 
     # Get member from server with selected username
-    for member in server_context.members:
+    for member in server_context.server.members:
         if member.nick == user:
             targeted_user_id = member.user.id
             return
