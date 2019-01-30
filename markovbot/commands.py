@@ -60,21 +60,23 @@ async def mock(context, user: str = None):
 
         # Get member from server with selected username
         for member in server_context.server.members:
+            print('Member Nick: {}'.format(member.nick))
             if member.nick == user:
-                await markovbot.say('Member Nick: {}'.format(member.nick))
+                print('Member Nick: {}'.format(member.nick))
                 targeted_user_id = member.id
                 return
 
         # Get messages from user in current channel
         message_logs = get_logs_from_channel(context.message.channel)
+
         logs_by_user = list(filter(
             lambda message_log: message_log.author.id == targeted_user_id, message_logs))
-        await markovbot.say('Filtered messages!')
+        print('Filtered messages!')
         # Get latest message from user
         logs_by_user.sort(
             key=lambda message_log: message_log.timestamp, reverse=True)
         sentence = logs_by_user[0]
-        await markovbot.say('Got Latest Message!')
+        print('Got Latest Message!')
 
     await markovbot.say(sentence)
 
