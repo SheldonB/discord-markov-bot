@@ -59,7 +59,7 @@ async def mock(context, user: str = None):
             return
 
     # Get messages from user in current channel
-    logs = yield markovbot.logs_from(server_context.message.channel, limit=500)
+    logs = get_logs_from_channel(server_context.message.channel)
     logsByUser = list(filter(lambda log: log.author.user.id == targeted_user_id, logs))
 
     # Get latest message from user
@@ -70,6 +70,10 @@ async def mock(context, user: str = None):
 
     await markovbot.say(sentence)
 
+@asyncio.coroutine
+def get_logs_from_channel(channel):
+    logs = yield from markovbot.logs_from(channel, limit=500)
+    return logs
 
 def mockString(sentence: str):
     if sentence is None:
