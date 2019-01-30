@@ -66,7 +66,7 @@ async def mock(context, user: str = None):
                 return
 
         # Get messages from user in current channel
-        message_logs = get_logs_from_channel(server_context.message.channel)
+        message_logs = get_logs_from_channel(context.message.channel)
         logs_by_user = list(filter(
             lambda message_log: message_log.author.id == targeted_user_id, message_logs))
         markovbot.say('Filtered messages!')
