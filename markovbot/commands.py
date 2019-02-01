@@ -50,34 +50,29 @@ async def say(context, user: str = None):
 @markovbot.command(pass_context=True, help='Mock the last specified user message.')
 async def mock(context, user: str = None):
     server_context = context.server_context
-    targeted_user_id = str()
-
-    # Get member from server with selected username
-    for member in server_context.members:
-        if member.nick == user:
-            targeted_user_id = member.user.id
-            return
+    targeted_user = server_context.server.get_member_named(user)
+    logs_by_user = list()
 
     # Get messages from user in current channel
-    logs = yield markovbot.logs_from(server_context.message.channel, limit=500)
-    logsByUser = list(filter(lambda log: log.author.user.id == targeted_user_id, logs))
+    async for message in markovbot.logs_from(context.message.channel, limit=500):
+        if message.author.id == targeted_user.id:
+            logs_by_user.append(message)
 
     # Get latest message from user
-    logsByUser.sort(key=lambda log: log.timestamp, reverse=True)
+    logs_by_user.sort(key=lambda message: message.timestamp, reverse=True)
 
-    log = logsByUser[0]
-    sentence = mockString(log.content)
+    targeted_message = logs_by_user[0]
+    sentence = mock_string(targeted_message.content)
 
     await markovbot.say(sentence)
 
 
-def mockString(sentence: str):
+def mock_string(sentence: str):
     if sentence is None:
         return
 
     # TODO: Might end up changing this to handle smaller strings.
-    mock_count = random.randint(0, math.ceil(
-        len(sentence) - len(sentence) / 2))
+    mock_count = math.ceil(len(sentence) - len(sentence) / 2)
     sentence_mock = list(sentence.lower())
 
     # TODO: Make a comparator array?
