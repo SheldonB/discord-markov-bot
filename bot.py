@@ -4,6 +4,7 @@ import logging
 
 from markovbot import markovbot
 
+
 class CustomFormatter(logging.Formatter):
     LEVEL_MAP = {logging.FATAL: 'F', logging.ERROR: 'E', logging.WARN: 'W', logging.INFO: 'I', logging.DEBUG: 'D'}
 
@@ -14,8 +15,8 @@ class CustomFormatter(logging.Formatter):
 
 def init_logging():
     fmt = '%(levelletter)s %(asctime)s.%(msecs).03d %(process)d %(filename)s:%(lineno)d] %(message)s'
-    datefmt = '%m-%d-%y %H:%M:%S'
-    formatter = CustomFormatter(fmt, datefmt)
+    date_format = '%m-%d-%y %H:%M:%S'
+    formatter = CustomFormatter(fmt, date_format)
 
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(logging.DEBUG)

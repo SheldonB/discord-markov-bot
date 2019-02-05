@@ -1,3 +1,4 @@
+import random
 import logging
 
 import markovify
@@ -24,16 +25,33 @@ class CustomMarkovText(markovify.Text):
 class MarkovManager:
 
     ALL_KEY = '__ALL__'
+    MAX_CACHE_SIZE = 3
 
     def __init__(self, server_context):
         self.server_context = server_context
 
-        self.cache_chain = {}
+        self.server_cache = None
+
+        self.user_cache_chain = {}
+
+        random.seed()
+
+    def _manage_cache(self):
+        num_cache_entries = len(self.user_cache_chain)
+
+        if num_cache_entries >= self.MAX_CACHE_SIZE:
+            # Chose a random entry from the cache to evict.
+            # This will probably be LRU eventually.
+            eviction_candidate = random.choice(list(self.user_cache_chain.keys()))
+            log.info('User cache has exceeded max size of %d, evicting chain for user id %s',
+                     self.MAX_CACHE_SIZE, eviction_candidate)
+
+            del self.user_cache_chain[eviction_candidate]
 
     def make_sentence_server(self):
         log.debug('Generating Markov Sentence based off entire server text')
 
-        if self.ALL_KEY not in self.cache_chain:
+        if self.server_cache is None:
             log.debug('Markov Chain for server %s not found in cache. Generating it.', self.server_context.server.name)
 
             messages = datastore.get_messages_by_server(server_id=self.server_context.server.id)
@@ -42,15 +60,17 @@ class MarkovManager:
 
             chain = CustomMarkovText(content)
 
-            self.cache_chain[self.ALL_KEY] = chain
+            self.server_cache = chain
 
-        return self.cache_chain[self.ALL_KEY].make_short_sentence(500, min_chars=100, tries=150)
+        return self.server_cache.make_short_sentence(500, min_chars=100, tries=150)
 
     def make_sentence_user(self, user):
         user_id = user['id']
 
-        if user_id  not in self.cache_chain:
+        if user_id not in self.user_cache_chain:
             log.debug('Markov Chain for user %s from server %s not found in cache. Generating it.', user['name'], self.server_context.server.name)
+
+            self._manage_cache()
 
             messages = datastore.get_messages_by_user(user_id=user_id)
 
@@ -61,6 +81,6 @@ class MarkovManager:
 
             chain = CustomMarkovText(content)
 
-            self.cache_chain[user_id] = chain
+            self.user_cache_chain[user_id] = chain
 
-        return self.cache_chain[user_id].make_short_sentence(500, min_chars=100, tries=150)
+        return self.user_cache_chain[user_id].make_short_sentence(500, min_chars=100, tries=150)
