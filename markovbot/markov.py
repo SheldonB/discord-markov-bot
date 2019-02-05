@@ -7,6 +7,7 @@ from markovbot import datastore
 
 log = logging.getLogger(__name__)
 
+
 class CustomMarkovText(markovify.Text):
 
     def _prepare_text(self, text):
@@ -21,6 +22,7 @@ class CustomMarkovText(markovify.Text):
         text = self._prepare_text(text)
 
         return markovify.split_into_sentences(text)
+
 
 class MarkovManager:
 
