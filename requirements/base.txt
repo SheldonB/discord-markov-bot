@@ -1,9 +1,0 @@
-aiohttp==1.0.5
-async-timeout==3.0.1
-chardet==3.0.4
-discord.py==0.16.12
-markovify==0.7.1
-multidict==4.4.2
-tinydb==3.12.0
-Unidecode==1.0.22
-websockets==3.4
