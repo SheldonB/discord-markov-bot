@@ -1,11 +1,9 @@
 .vscode/
 .idea/
-
-
 venv/
 
+*.iml
 *.pyc
-
+.DS_Store
 log.txt
-
 bot_db.json
