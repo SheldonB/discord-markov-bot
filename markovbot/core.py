@@ -31,7 +31,7 @@ class MarkovBot(Bot):
         :return: None
         """
         log.info("New Guild has joined the mix. Guild=%s:%s", guild.id, guild.name)
-        self.supervisor.add(guild)
+        await self.supervisor.add(guild)
 
 
 markovbot = MarkovBot()

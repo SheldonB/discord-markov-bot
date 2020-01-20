@@ -86,3 +86,10 @@ class MarkovManager:
             self.user_cache_chain[user_id] = chain
 
         return self.user_cache_chain[user_id].make_short_sentence(500, min_chars=100, tries=150)
+
+
+def generate_chain(messages) -> markovify.Text:
+    log.info('Generating new Markov Chain')
+    content = [message['content'] for message in messages]
+    return CustomMarkovText(content)
+
