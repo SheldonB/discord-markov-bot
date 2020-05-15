@@ -5,7 +5,7 @@ chardet==3.0.4
 discord.py==1.2.5
 idna==2.8
 markovify==0.8.0
-multidict==4.7.4
+multidict==4.7.6
 Unidecode==1.1.1
 websockets==6.0
 yarl==1.4.2
