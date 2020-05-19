@@ -1,7 +1,10 @@
 import random
 import logging
 
+from typing import List
+
 import markovify
+from discord import Message
 
 from markovbot import datastore
 
@@ -88,8 +91,8 @@ class MarkovManager:
         return self.user_cache_chain[user_id].make_short_sentence(500, min_chars=100, tries=150)
 
 
-def generate_chain(messages) -> markovify.Text:
+def generate_chain(messages: List[Message]) -> markovify.Text:
     log.info('Generating new Markov Chain')
-    content = [message['content'] for message in messages]
+    content = [message.content for message in messages]
     return CustomMarkovText(content)
 

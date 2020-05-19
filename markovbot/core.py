@@ -20,6 +20,9 @@ class MarkovBot(Bot):
 
         self.supervisor = Supervisor()
 
+    async def on_ready(self):
+        log.info("Markov Bot is connected and ready.")
+
     async def on_guild_join(self, guild: Guild):
         """
         Event that is fired when the bot is added to a new server.
@@ -30,8 +33,21 @@ class MarkovBot(Bot):
         :param guild: Discord Guild (Server) that has joined.
         :return: None
         """
-        log.info("New Guild has joined the mix. Guild=%s:%s", guild.id, guild.name)
+        log.info("New Guild(id=%s, name=%s) has joined the mix.", guild.id, guild.name)
         await self.supervisor.add(guild)
+
+    async def on_guild_remove(self, guild: Guild):
+        log.info("Guild(id=%s, name=%s) has been removed.", guild.id, guild.name)
+        self.supervisor.remove(guild)
+
+    async def on_guild_available(self, guild: Guild):
+        log.info("Guild(id=%s, name=%s) is now available.", guild.id, guild.name)
+        await self.supervisor.add(guild)
+
+    async def on_guild_unavailable(self, guild: Guild):
+        log.info("Guild(id=%s, name=%s) is now unavailable.", guild.id, guild.name)
+        self.supervisor.remove(guild)
+
 
 
 markovbot = MarkovBot()
