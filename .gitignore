@@ -6,4 +6,5 @@ venv/
 *.pyc
 .DS_Store
 log.txt
+bot_db.json
 markov_db.json
