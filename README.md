@@ -10,9 +10,15 @@ If running in a development environment, install dev dependencies.
 $ pip install -r requirements/dev.txt
 `
 
-If running in a production environment, install base dependencies.
+If running in a non-dev environment, install base dependencies.
 
 `
 $ pip install -r requirements/base.txt
 `
+
+To start the bot:
+`
+$ python bot.py
+`
+
 
