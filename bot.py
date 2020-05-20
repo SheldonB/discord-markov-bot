@@ -47,7 +47,7 @@ if __name__ == '__main__':
         log.error('DISCORD_BOT_TOKEN env variable not set. Set it before running the bot.')
         exit(-1)
 
-    log.info('Starting Discord Cancer Bot')
+    log.info('Starting Discord Markov Bot')
 
     try:
         markovbot.run(token)
