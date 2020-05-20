@@ -1,6 +1,6 @@
 import logging
 
-from discord import Guild
+from discord import Guild, Game, CustomActivity
 from discord.ext.commands import Bot
 
 from markovbot.supervisor import Supervisor
@@ -21,6 +21,7 @@ class MarkovBot(Bot):
         self.supervisor = Supervisor()
 
     async def on_ready(self):
+        await self.update_presence()
         log.info("Markov Bot is connected and ready.")
 
     async def on_guild_join(self, guild: Guild):
@@ -35,18 +36,26 @@ class MarkovBot(Bot):
         """
         log.info("New Guild(id=%s, name=%s) has joined the mix.", guild.id, guild.name)
         await self.supervisor.add(guild)
+        await self.update_presence()
 
     async def on_guild_remove(self, guild: Guild):
         log.info("Guild(id=%s, name=%s) has been removed.", guild.id, guild.name)
         self.supervisor.remove(guild)
+        await self.update_presence()
 
     async def on_guild_available(self, guild: Guild):
         log.info("Guild(id=%s, name=%s) is now available.", guild.id, guild.name)
         await self.supervisor.add(guild)
+        await self.update_presence()
 
     async def on_guild_unavailable(self, guild: Guild):
         log.info("Guild(id=%s, name=%s) is now unavailable.", guild.id, guild.name)
         self.supervisor.remove(guild, True)
+        await self.update_presence()
+
+    async def update_presence(self):
+        game_activity = Game("on {} servers.".format(self.supervisor.connected_guild_count()))
+        await self.change_presence(activity=game_activity)
 
 
 markovbot = MarkovBot()

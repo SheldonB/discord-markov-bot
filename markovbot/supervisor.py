@@ -26,3 +26,6 @@ class Supervisor:
                 persistence.delete_chain(guild)
         except KeyError:
             log.warning('Guild=%s:%s asked to be removed, but was not in connected guilds map', guild.id, guild.name)
+
+    def connected_guild_count(self):
+        return len(self.guilds)
