@@ -19,6 +19,7 @@ class Seeder:
         messages = []
 
         for channel in channels:
+            log.debug('Downloading channel history for Channel(name=%s)', channel.name)
             async for message in channel.history(limit=None):
                 author = message.author
                 content = message.content
