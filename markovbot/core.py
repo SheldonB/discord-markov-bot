@@ -46,8 +46,7 @@ class MarkovBot(Bot):
 
     async def on_guild_unavailable(self, guild: Guild):
         log.info("Guild(id=%s, name=%s) is now unavailable.", guild.id, guild.name)
-        self.supervisor.remove(guild)
-
+        self.supervisor.remove(guild, True)
 
 
 markovbot = MarkovBot()

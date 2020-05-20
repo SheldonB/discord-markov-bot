@@ -8,7 +8,12 @@ log = logging.getLogger(__name__)
 
 class Seeder:
     async def seed(self, guild: Guild):
-        log.info("Seeding chain for Guild(id=%s, name=%s)", guild.id, guild.name)
+
+        if (persistence.chain_exists(guild)):
+            log.debug('Skipping seeding chain for Guild(id=%s, name=%s). It already exists.', guild.id, guild.name)
+            return
+
+        log.debug("Seeding chain for Guild(id=%s, name=%s)", guild.id, guild.name)
 
         channels = guild.text_channels
         messages = []
@@ -23,7 +28,7 @@ class Seeder:
                 # 2. The message is more than one word.
                 # 3. The message does not start with '!' (This should weed out most commands)
                 # 4. The message is not a link.
-                if not author.bot and len(content.split()) > 1 and not content.startswith(('!', 'http')):
+                if not author.bot and len(content.split()) > 1 and not content.startswith('!'):
                     messages.append(message)
 
         chain = markov.generate_chain(messages)

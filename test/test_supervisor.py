@@ -9,6 +9,7 @@ from .utils import get_guild
 
 
 class SupervisorTest(unittest.TestCase):
+
     def test_can_add_guild(self):
         supervisor = Supervisor()
         supervisor.seeder.seed = Mock(side_effect=coroutine(Mock()))

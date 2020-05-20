@@ -2,7 +2,7 @@ import logging
 
 from discord import Guild
 
-from markovbot import markov
+from markovbot import markov, persistence
 from markovbot.seeder import Seeder
 
 
@@ -18,9 +18,11 @@ class Supervisor:
         self.guilds[guild.id] = guild
         await self.seeder.seed(guild)
 
-    def remove(self, guild: Guild):
+    def remove(self, guild: Guild, delete_data=False): # TODO: Ugly, clean up later.
         try:
             self.guilds.pop(guild.id)
-            # TODO: Write to disk
+
+            if delete_data:
+                persistence.delete_chain(guild)
         except KeyError:
             log.warning('Guild=%s:%s asked to be removed, but was not in connected guilds map', guild.id, guild.name)
