@@ -33,8 +33,14 @@ class Seeder:
                     # 4. The message is not a link.
                     if not author.bot and len(content.split()) > 1 and not content.startswith('!'):
                         messages.append(message)
-
-        chain = markov.generate_chain(messages)
-        persistence.create_chain(guild, chain.to_dict())
+        if len(messages) > 0:
+            chain = markov.generate_chain(messages)
+            persistence.create_chain(guild, chain.to_dict())
 
         log.info("Successfully seeded chain with %d messages for Guild(id=%s, %s)", len(messages), guild.id, guild.name)
+
+    async def reseed(self, guild: Guild):
+        persistence.delete_chain(guild)
+        await self.seed(guild)
+
+seeder = Seeder()
