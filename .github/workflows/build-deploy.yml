@@ -61,7 +61,7 @@ jobs:
         name: disord-markov-bot
         dns-name-label: 'discord-markov-bot'
         cpu: 1
-        memory: .5
+        memory: 1
         location: 'east us'
         registry-login-server: index.docker.io
         registry-username: ${{ secrets.DOCKER_USERNAME }}
