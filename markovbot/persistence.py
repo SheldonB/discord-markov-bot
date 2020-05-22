@@ -1,4 +1,4 @@
-
+import os
 import logging
 
 from tinydb import TinyDB, Query
@@ -6,7 +6,7 @@ from discord import Guild
 
 log = logging.getLogger(__name__)
 
-db = TinyDB('markov_db.json')
+db = TinyDB(os.environ.get('DB_PATH', './') + 'markov_db.json')
 
 ChainDB = db.table('Chain')
 

@@ -53,19 +53,22 @@ jobs:
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
     
-    - name: Set DNS Name Label
-      id: vars
-      run: echo "::set-output name=dns_label::$(git rev-parse --short HEAD)"
-    
     - name: Deploy Image to Azure Container Instances
       uses: Azure/aci-deploy@v1
       with:
         resource-group: discord-markov-bot
         image: sheldonburks/discord-markov-bot:latest
         name: disord-markov-bot
-        dns-name-label: 'discord-markov-bot-new'
+        dns-name-label: 'discord-markov-bot'
+        cpu: 1
+        memory: .5
         location: 'east us'
         registry-login-server: index.docker.io
         registry-username: ${{ secrets.DOCKER_USERNAME }}
         registry-password: ${{ secrets.DOCKER_PASSWORD }}
+        environment-variables: DB_PATH=/mnt/db/
         secure-environment-variables: DISCORD_BOT_TOKEN=${{ secrets.DISCORD_BOT_TOKEN }}
+        azure-file-volume-account-key: ${{ secrets.AZURE_FILE_VOLUME_ACCOUNT_KEY }}
+        azure-file-volume-account-name: ${{ secrets.AZURE_FILE_VOLUME_ACCOUNT_NAME }}
+        azure-file-volume-mount-path: /mnt/db/
+        azure-file-volume-share-name: discord-markov-bot
