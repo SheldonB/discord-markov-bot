@@ -40,6 +40,7 @@ class Seeder:
         log.info("Successfully seeded chain with %d messages for Guild(id=%s, %s)", len(messages), guild.id, guild.name)
 
     async def reseed(self, guild: Guild):
+        log.info("Starting re-seeding for Guild(id=%s, name=%s)", guild.id, guild.name)
         persistence.delete_chain(guild)
         await self.seed(guild)
 

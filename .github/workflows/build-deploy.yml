@@ -7,6 +7,7 @@ on:
 jobs:
 
   test:
+    name: Run Tests
     runs-on: ubuntu-latest
 
     steps:
@@ -27,6 +28,7 @@ jobs:
 
 
   build-and-publish-docker-image:
+    name: Build and Publish Docker Image
     runs-on: ubuntu-latest
     needs: [test]
 
@@ -44,6 +46,7 @@ jobs:
         password: ${{ secrets.DOCKER_PASSWORD }}
   
   deploy-container:
+    name: Deploy Container
     runs-on: ubuntu-latest
     needs: [test, build-and-publish-docker-image]
 
@@ -58,7 +61,7 @@ jobs:
       with:
         resource-group: discord-markov-bot
         image: sheldonburks/discord-markov-bot:latest
-        name: disord-markov-bot
+        name: discord-markov-bot
         dns-name-label: 'discord-markov-bot'
         cpu: 1
         memory: 1
@@ -72,3 +75,8 @@ jobs:
         azure-file-volume-account-name: ${{ secrets.AZURE_FILE_VOLUME_ACCOUNT_NAME }}
         azure-file-volume-mount-path: /mnt/db/
         azure-file-volume-share-name: discord-markov-bot
+
+    # - name: Restart Container Group
+    #   uses: azure/CLI@v1
+    #   inlineScript: |
+    #     az container restart --resource-group Discord-Markov-Bot --name discord-markov-bot 
