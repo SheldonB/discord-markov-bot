@@ -76,7 +76,8 @@ jobs:
         azure-file-volume-mount-path: /mnt/db/
         azure-file-volume-share-name: discord-markov-bot
 
-    # - name: Restart Container Group
-    #   uses: azure/CLI@v1
-    #   inlineScript: |
-    #     az container restart --resource-group Discord-Markov-Bot --name discord-markov-bot 
+    - name: Restart Container Group
+      uses: azure/CLI@v1
+      with:
+        inlineScript: |
+          az container restart --resource-group Discord-Markov-Bot --name discord-markov-bot 
