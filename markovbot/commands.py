@@ -1,10 +1,16 @@
 from discord.ext.commands import Context
 
-from markovbot import markovbot, markov
+from markovbot import markovbot, markov, discord_utils
 from markovbot.seeder import seeder
 
 @markovbot.command(pass_context=True, help='Generate a sentence based of a Markov Chain')
-async def say(ctx: Context):
+async def say(ctx: Context, user: str = None):
+    if user:
+        user_id = discord_utils.extract_id_from_mention(user)
+        print('User Id ' + str(user_id))
+        mem = ctx.guild.get_member(user_id)
+        print(mem)
+
     try:
         sentence = markov.make_sentence(ctx.guild)
         await ctx.channel.send(sentence)
