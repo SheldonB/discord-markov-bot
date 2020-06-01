@@ -1,8 +1,11 @@
 import os
 import sys
 import logging
+import asyncio
 
-from markovbot import markovbot
+from aiohttp import web as aio_web
+
+from markovbot import markovbot, web
 
 
 class CustomFormatter(logging.Formatter):
@@ -34,6 +37,28 @@ def init_logging():
     # Explicitly tell these libraries to shut up
     logging.getLogger('discord').setLevel(logging.WARN)
     logging.getLogger('websockets').setLevel(logging.WARN)
+    logging.getLogger('aiohttp').setLevel(logging.WARN)
+
+
+async def start_bot():
+    try:
+        await markovbot.start(token)
+    except asyncio.CancelledError:
+        pass
+    except:
+        log.error("Something went wrong during execution. Exiting....", exc_info=1)
+    finally:
+        log.info('Bot is shutting down.')
+        await markovbot.logout()
+
+
+async def register_discord_bot_task(app):
+    app['discord_bot'] = asyncio.create_task(start_bot())
+
+
+async def cleanup_discord_bot_task(app):
+    app['discord_bot'].cancel()
+    await app['discord_bot']
 
 
 if __name__ == '__main__':
@@ -49,7 +74,6 @@ if __name__ == '__main__':
 
     log.info('Starting Discord Markov Bot')
 
-    try:
-        markovbot.run(token)
-    except:
-        log.error("Something went wrong during execution. Exiting....", exc_info=1)
+    web.app.on_startup.append(register_discord_bot_task)
+    web.app.on_cleanup.append(cleanup_discord_bot_task)
+    aio_web.run_app(web.app)

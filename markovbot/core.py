@@ -18,7 +18,16 @@ class MarkovBot(Bot):
     def __init__(self):
         super().__init__(command_prefix='!markov ', description=description)
 
+        self.is_connected = False
         self.supervisor = Supervisor()
+
+    @property
+    def connect_guild_count(self) -> int:
+        """
+        Get the number of connected guilds the bot is a member of.
+        :return: int
+        """
+        return len(self.guilds)
 
     async def on_ready(self):
         await self.update_presence()
