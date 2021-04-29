@@ -1,0 +1,37 @@
+version: 2
+updates:
+- package-ecosystem: pip
+  directory: "/"
+  schedule:
+    interval: daily
+    time: "10:00"
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: pylint
+    versions:
+    - 2.6.0
+    - 2.6.2
+    - 2.7.0
+    - 2.7.1
+    - 2.7.2
+    - 2.7.4
+    - 2.8.1
+  - dependency-name: discord-py
+    versions:
+    - 1.6.0
+    - 1.7.0
+  - dependency-name: isort
+    versions:
+    - 5.7.0
+  - dependency-name: aiohttp
+    versions:
+    - 3.7.3
+  - dependency-name: tinydb
+    versions:
+    - 4.3.0
+  - dependency-name: rope
+    versions:
+    - 0.18.0
+  - dependency-name: markovify
+    versions:
+    - 0.8.3
