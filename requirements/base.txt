@@ -9,4 +9,4 @@ multidict==4.7.6
 Unidecode==1.1.1
 websockets==6.0
 yarl==1.4.2
-tinydb==4.1.1
+tinydb==4.5.0
