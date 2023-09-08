@@ -1,6 +1,6 @@
 import logging
 
-from discord import Guild, Game, CustomActivity
+from discord import Guild, Game, Intents
 from discord.ext.commands import Bot
 
 from markovbot.supervisor import Supervisor
@@ -16,7 +16,10 @@ class MarkovBot(Bot):
     overrides events for custom logic and handling.
     """
     def __init__(self):
-        super().__init__(command_prefix='!markov ', description=description)
+        intents = Intents.default()
+        intents.message_content = True
+
+        super().__init__(command_prefix='!markov ', description=description, intents=intents)
 
         self.supervisor = Supervisor()
 
