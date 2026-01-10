@@ -1,10 +1,17 @@
-from discord import Guild
+from dataclasses import dataclass
 
 
-class MockState:
-    def __init__(self):
-        self.shard_count = 1
+@dataclass
+class MockGuild:
+    id: int = 123
+    name: str = "Test Guild"
+    text_channels: list = None
+    me: object = None
+
+    def __post_init__(self):
+        if self.text_channels is None:
+            self.text_channels = []
 
 
 def get_guild():
-    return Guild(data={'id': 123}, state=MockState())
+    return MockGuild()
