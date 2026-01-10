@@ -37,7 +37,7 @@ def make_sentence(guild: Guild) -> str:
     sentence = chain.make_short_sentence(500, min_chars=125, tries=300)
 
     if not sentence:
-        log.warn('Sentence was unable to be generated for Guild(id=%s, name=%s). Probably not enough data', guild.id, guild.name)
+        log.warning('Sentence was unable to be generated for Guild(id=%s, name=%s). Probably not enough data', guild.id, guild.name)
         raise MarkovGenerationException
 
     return sentence
@@ -47,4 +47,3 @@ def generate_chain(messages: List[Message]) -> markovify.Text:
     log.info('Generating new Markov Chain')
     content = [message.content for message in messages]
     return CustomMarkovText(content)
-

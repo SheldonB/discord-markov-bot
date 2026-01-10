@@ -1,8 +1,5 @@
 import unittest
-from unittest.mock import Mock
-
 import asyncio
-from asyncio import coroutine
 
 from markovbot.supervisor import Supervisor
 from .utils import get_guild
@@ -15,8 +12,7 @@ class SupervisorTest(unittest.TestCase):
 
         guild = get_guild()
 
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(supervisor.add(guild))
+        asyncio.run(supervisor.add(guild))
 
         self.assertIn(guild.id, supervisor.guilds)
 
@@ -24,8 +20,7 @@ class SupervisorTest(unittest.TestCase):
         supervisor = Supervisor()
         guild = get_guild()
 
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(supervisor.add(guild))
+        asyncio.run(supervisor.add(guild))
 
         supervisor.remove(guild)
 

@@ -20,7 +20,12 @@ class Seeder:
         messages = []
 
         for channel in channels:
-            if channel.permissions_for(guild.me).read_messages:
+            member = guild.me
+            if member is None:
+                log.warning('Skipping channel permissions check for Guild(id=%s) because bot member is unavailable.', guild.id)
+                continue
+
+            if channel.permissions_for(member).read_messages:
                 log.debug('Downloading channel history for Channel(name=%s)', channel.name)
                 async for message in channel.history(limit=None):
                     author = message.author
