@@ -5,16 +5,24 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
-if "discord" not in sys.modules:
-    discord_stub = types.ModuleType("discord")
-    discord_stub.Message = type("Message", (), {})
-    discord_stub.Guild = type("Guild", (), {})
-    sys.modules["discord"] = discord_stub
+discord_stub = types.ModuleType("discord")
+discord_stub.Message = type("Message", (), {})
+discord_stub.Guild = type("Guild", (), {})
+sys.modules["discord"] = discord_stub
 
-if "markovbot" not in sys.modules:
-    markovbot_pkg = types.ModuleType("markovbot")
-    markovbot_pkg.__path__ = [str(Path(__file__).resolve().parents[1] / "markovbot")]
-    sys.modules["markovbot"] = markovbot_pkg
+markovify_stub = types.ModuleType("markovify")
+
+class _Text:
+    def __init__(self, corpus):
+        self.corpus = corpus
+
+markovify_stub.Text = _Text
+markovify_stub.split_into_sentences = lambda text: [text]
+sys.modules["markovify"] = markovify_stub
+
+markovbot_pkg = types.ModuleType("markovbot")
+markovbot_pkg.__path__ = [str(Path(__file__).resolve().parents[1] / "markovbot")]
+sys.modules["markovbot"] = markovbot_pkg
 
 from markovbot.markov import CustomMarkovText, MarkovGenerationException, generate_chain, make_sentence
 from .utils import get_guild
