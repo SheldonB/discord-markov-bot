@@ -1,6 +1,5 @@
 import asyncio
 import unittest
-from unittest import mock
 
 from markovbot.supervisor import Supervisor
 from .utils import get_guild
