@@ -1,6 +1,7 @@
 import logging
 
-from discord import Guild, Game, Intents
+import discord
+from discord import Guild, Game
 from discord.ext.commands import Bot
 
 from markovbot.supervisor import Supervisor
@@ -16,10 +17,16 @@ class MarkovBot(Bot):
     overrides events for custom logic and handling.
     """
     def __init__(self):
-        intents = Intents.default()
-        intents.message_content = True
+        intents = None
+        if hasattr(discord, "Intents"):
+            intents = discord.Intents.default()
+            if hasattr(intents, "message_content"):
+                intents.message_content = True
 
-        super().__init__(command_prefix='!markov ', description=description, intents=intents)
+        if intents is None:
+            super().__init__(command_prefix='!markov ', description=description)
+        else:
+            super().__init__(command_prefix='!markov ', description=description, intents=intents)
 
         self.supervisor = Supervisor()
 
