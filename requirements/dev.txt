@@ -3,7 +3,7 @@ astroid==4.0.3
 isort==7.0.0
 lazy-object-proxy==1.12.0
 mccabe==0.7.0
-pylint==4.0.4
+pylint==4.0.5
 rope==1.14.0
 six==1.17.0
 wrapt==2.0.1
