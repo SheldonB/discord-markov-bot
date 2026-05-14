@@ -3,7 +3,7 @@ async-timeout==5.0.1
 attrs==25.4.0
 chardet==5.2.0
 discord.py==2.6.4
-idna==3.11
+idna==3.12
 markovify==0.9.4
 multidict==6.7.1
 Unidecode==1.4.0
