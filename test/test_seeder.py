@@ -56,7 +56,7 @@ class SeederTest(unittest.IsolatedAsyncioTestCase):
         with patch('markovify.chain.random', Random(42)):
             sentence = markov.make_sentence(self.guild, 111)
 
-        self.assertGreaterEqual(len(sentence), 20)
+        self.assertGreaterEqual(len(sentence), 125)
         self.assertLessEqual(len(sentence), 500)
         self.assertNotIn(sentence, texts)
         self.assertIn('<@123456789012345678>', sentence)
@@ -87,7 +87,7 @@ class SeederTest(unittest.IsolatedAsyncioTestCase):
         ])
         self.assertEqual(sentences(persistence.get_chain(self.guild, 222)), ['Bob plays music before dinner'])
         self.assertEqual(persistence.get_chain(self.guild)['state_size'], 2)
-        self.assertEqual(persistence.get_chain(self.guild, 111)['state_size'], 1)
+        self.assertEqual(persistence.get_chain(self.guild, 111)['state_size'], 2)
         for user_id in (333, 444, 555, 666, 777):
             self.assertIsNone(persistence.get_chain(self.guild, user_id))
         first.history.assert_called_once_with(limit=None)

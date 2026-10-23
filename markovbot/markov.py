@@ -91,8 +91,12 @@ class CustomMarkovText(markovify.Text):
 
     def sentence_split(self, text):
         text = self._prepare_text(text)
+        split_lowercase = _int_setting('MARKOV_SPLIT_LOWERCASE', 0, minimum=0, maximum=1)
         sentences = []
         for line in text.splitlines():
+            if not split_lowercase:
+                sentences.extend(markovify.split_into_sentences(line))
+                continue
             start = 0
             for match in _SENTENCE_END.finditer(line):
                 word = match.group(1)
@@ -154,7 +158,7 @@ def _get_model(guild, user_id):
 
 
 def make_sentence(guild: Guild, user_id: int = None) -> str:
-    min_chars = _int_setting('MARKOV_MIN_CHARS', 20, minimum=0)
+    min_chars = _int_setting('MARKOV_MIN_CHARS', 125, minimum=0)
     max_chars = _int_setting('MARKOV_MAX_CHARS', 500, maximum=2000)
     if min_chars > max_chars:
         raise ValueError('MARKOV_MIN_CHARS must not exceed MARKOV_MAX_CHARS.')
@@ -179,6 +183,6 @@ def make_sentence(guild: Guild, user_id: int = None) -> str:
 def generate_chain(messages: List[Message], *, user_model=False) -> markovify.Text:
     log.info('Generating new Markov Chain')
     setting = 'MARKOV_USER_STATE_SIZE' if user_model else 'MARKOV_STATE_SIZE'
-    state_size = _int_setting(setting, 1 if user_model else 2, maximum=3)
+    state_size = _int_setting(setting, 2, maximum=3)
     content = [message.content for message in messages]
     return CustomMarkovText(content, state_size=state_size)
