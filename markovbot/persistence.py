@@ -9,6 +9,12 @@ log = logging.getLogger(__name__)
 db = TinyDB(os.environ.get('DB_PATH', './') + 'markov_db.json')
 
 ChainDB = db.table('Chain')
+_chain_revisions = {}
+
+
+def get_chain_revision(guild: Guild) -> int:
+    """Track writes in this process so cached models can skip database reads."""
+    return _chain_revisions.get(guild.id, 0)
 
 
 def create_chain(guild: Guild, chain: dict, user_chains: dict = None):
@@ -22,6 +28,7 @@ def create_chain(guild: Guild, chain: dict, user_chains: dict = None):
 
     Chain = Query()
     ChainDB.upsert(record, Chain.guild_id == guild.id)
+    _chain_revisions[guild.id] = get_chain_revision(guild) + 1
 
 
 def get_chain(guild: Guild, user_id: int = None) -> dict:
@@ -42,6 +49,7 @@ def delete_chain(guild: Guild):
 
     Chain = Query()
     ChainDB.remove(Chain.guild_id == guild.id)
+    _chain_revisions[guild.id] = get_chain_revision(guild) + 1
 
 
 def chain_exists(guild: Guild) -> bool:
