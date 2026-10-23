@@ -1,4 +1,16 @@
 from dataclasses import dataclass
+from unittest.mock import patch
+
+from tinydb import TinyDB
+from tinydb.storages import MemoryStorage
+
+
+def isolate_persistence(test_case):
+    database = TinyDB(storage=MemoryStorage)
+    test_case.addCleanup(database.close)
+    table_patch = patch('markovbot.persistence.ChainDB', database.table('Chain'))
+    table_patch.start()
+    test_case.addCleanup(table_patch.stop)
 
 
 @dataclass

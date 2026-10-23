@@ -1,4 +1,3 @@
-import random
 import logging
 
 from typing import List
@@ -13,6 +12,11 @@ log = logging.getLogger(__name__)
 
 class MarkovGenerationException(Exception):
     pass
+
+
+class MarkovTrainingException(Exception):
+    """The input contains no text that can train a Markov model."""
+
 
 class CustomMarkovText(markovify.Text):
 
@@ -29,15 +33,28 @@ class CustomMarkovText(markovify.Text):
 
         return markovify.split_into_sentences(text)
 
+    def generate_corpus(self, text):
+        corpus = list(super().generate_corpus(text))
+        if not corpus:
+            raise MarkovTrainingException('No trainable sentences in the supplied messages.')
+        return corpus
 
-def make_sentence(guild: Guild) -> str:
-    chain_as_dict = persistence.get_chain(guild)
+
+def make_sentence(guild: Guild, user_id: int = None) -> str:
+    chain_as_dict = persistence.get_chain(guild, user_id)
+    if chain_as_dict is None:
+        raise MarkovGenerationException('No saved chain for the requested server or user.')
+
     chain = CustomMarkovText.from_dict(chain_as_dict)
-    
+
     sentence = chain.make_short_sentence(500, min_chars=125, tries=300)
 
     if not sentence:
-        log.warning('Sentence was unable to be generated for Guild(id=%s, name=%s). Probably not enough data', guild.id, guild.name)
+        log.warning(
+            'Sentence was unable to be generated for Guild(id=%s, name=%s), '
+            'user_id=%s. Probably not enough data',
+            guild.id, guild.name, user_id,
+        )
         raise MarkovGenerationException
 
     return sentence
