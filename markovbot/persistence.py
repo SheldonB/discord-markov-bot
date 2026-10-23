@@ -11,10 +11,11 @@ db = TinyDB(os.environ.get('DB_PATH', './') + 'markov_db.json')
 ChainDB = db.table('Chain')
 
 
-def create_chain(guild: Guild, chain: dict):
+def create_chain(guild: Guild, chain: dict, user_chains: dict = None):
     record = {
         'guild_id': guild.id,
-        'chain': chain
+        'chain': chain,
+        'user_chains': {str(user_id): model for user_id, model in (user_chains or {}).items()}
     }
 
     log.info("Persisting Chain for Guild(id=%s, name=%s)", guild.id, guild.name)
@@ -23,8 +24,8 @@ def create_chain(guild: Guild, chain: dict):
     ChainDB.upsert(record, Chain.guild_id == guild.id)
 
 
-def get_chain(guild: Guild) -> dict:
-    log.debug("Retreiving Chain for Guild(id=%s, name=%s)", guild.id, guild.name)
+def get_chain(guild: Guild, user_id: int = None) -> dict:
+    log.debug("Retrieving Chain for Guild(id=%s, name=%s), user_id=%s", guild.id, guild.name, user_id)
     Chain = Query()
 
     record = ChainDB.get(Chain.guild_id == guild.id)
@@ -32,7 +33,8 @@ def get_chain(guild: Guild) -> dict:
     if not record:
         return None
 
-    return dict(record['chain'])
+    chain = record['chain'] if user_id is None else record.get('user_chains', {}).get(str(user_id))
+    return dict(chain) if chain is not None else None
 
 
 def delete_chain(guild: Guild):

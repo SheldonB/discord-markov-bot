@@ -3,7 +3,11 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
-from markovbot.commands import learn, seeder
+from discord.ext.commands import BadArgument, TooManyArguments
+from discord.ext.commands.view import StringView
+
+from markovbot import markov
+from markovbot.commands import learn, say, seeder
 
 
 def get_context(guild_id=123):
@@ -11,6 +15,71 @@ def get_context(guild_id=123):
         guild=SimpleNamespace(id=guild_id),
         channel=SimpleNamespace(send=AsyncMock()),
     )
+
+
+class SayTest(unittest.IsolatedAsyncioTestCase):
+    async def parse(self, argument):
+        ctx = get_context()
+        ctx.message = SimpleNamespace(attachments=[])
+        ctx.view = StringView(argument)
+        await say._parse_arguments(ctx)
+        return ctx
+
+    async def test_omitted_target_uses_server_chain(self):
+        ctx = await self.parse('')
+        with patch('markovbot.commands.markov.make_sentence', return_value='Server sentence') as generate:
+            await say.callback(*ctx.args, **ctx.kwargs)
+
+        generate.assert_called_once_with(ctx.guild, None)
+        ctx.channel.send.assert_awaited_once_with('Server sentence')
+
+    async def test_mention_or_id_selects_user_without_member_lookup(self):
+        user_id = 123456789012345678
+        for target in (str(user_id), f'<@{user_id}>', f'<@!{user_id}>'):
+            with self.subTest(target=target):
+                ctx = await self.parse(target)
+                with patch('markovbot.commands.markov.make_sentence', return_value='User sentence') as generate:
+                    await say.callback(*ctx.args, **ctx.kwargs)
+
+                generate.assert_called_once_with(ctx.guild, user_id)
+                ctx.channel.send.assert_awaited_once_with('User sentence')
+
+    async def test_invalid_targets_are_usage_errors_without_server_fallback(self):
+        for target in ('Alice', '<@&123456789012345678>', '<#123456789012345678>',
+                       '123', '-123456789012345678', '99999999999999999999'):
+            with self.subTest(target=target):
+                ctx = get_context()
+                ctx.message = SimpleNamespace(attachments=[])
+                ctx.view = StringView(target)
+                with patch('markovbot.commands.markov.make_sentence') as generate:
+                    with self.assertRaises(BadArgument) as error:
+                        await say._parse_arguments(ctx)
+                    await say.on_error(ctx, error.exception)
+
+                generate.assert_not_called()
+                self.assertIn('!markov say USER_ID', ctx.channel.send.call_args.args[0])
+
+    async def test_extra_arguments_are_rejected(self):
+        with self.assertRaises(TooManyArguments):
+            await self.parse('123456789012345678 another-user')
+
+    async def test_unavailable_user_model_returns_targeted_error_without_fallback(self):
+        ctx = get_context()
+        with patch('markovbot.commands.markov.make_sentence', side_effect=markov.MarkovGenerationException) as generate:
+            await say.callback(ctx, 123456789012345678)
+
+        generate.assert_called_once_with(ctx.guild, 123456789012345678)
+        ctx.channel.send.assert_awaited_once()
+        self.assertIn('that user in this server', ctx.channel.send.call_args.args[0])
+
+    async def test_unavailable_server_model_preserves_existing_error_message(self):
+        ctx = get_context()
+        with patch('markovbot.commands.markov.make_sentence', side_effect=markov.MarkovGenerationException):
+            await say.callback(ctx)
+
+        ctx.channel.send.assert_awaited_once_with(
+            'Unable to generate sentence for your server. There are propably not enough messages.'
+        )
 
 
 class LearnTest(unittest.IsolatedAsyncioTestCase):
