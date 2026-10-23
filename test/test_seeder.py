@@ -33,15 +33,17 @@ def sentences(chain):
 class SeederTest(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         isolate_persistence(self)
+        markov.clear_model_cache()
+        self.addCleanup(markov.clear_model_cache)
         self.seeder = Seeder()
         self.guild = MockGuild(me=object())
 
     async def test_saved_user_model_generates_a_novel_sentence_from_that_author(self):
         texts = [
-            'Every morning we gather near the ancient oak tree before we wander through '
+            '<@123456789012345678> Every morning we gather near the ancient oak tree before we wander through '
             'the bustling marketplace to find fresh vegetables and share our stories '
             'about the changing seasons.',
-            'Every evening we gather near the peaceful river bank before we wander '
+            '<@123456789012345678> Every evening we gather near the peaceful river bank before we wander '
             'through the quiet village to find warm bread and share our dreams '
             'about the distant mountains.',
         ]
@@ -54,9 +56,10 @@ class SeederTest(unittest.IsolatedAsyncioTestCase):
         with patch('markovify.chain.random', Random(42)):
             sentence = markov.make_sentence(self.guild, 111)
 
-        self.assertGreaterEqual(len(sentence), 125)
+        self.assertGreaterEqual(len(sentence), 20)
         self.assertLessEqual(len(sentence), 500)
         self.assertNotIn(sentence, texts)
+        self.assertIn('<@123456789012345678>', sentence)
         self.assertLessEqual(set(sentence.split()), {word for text in texts for word in text.split()})
 
     async def test_one_history_scan_builds_combined_and_separate_author_models(self):
@@ -66,6 +69,7 @@ class SeederTest(unittest.IsolatedAsyncioTestCase):
             message(333, 'A robot should be ignored', bot=True),
             message(444, 'hello'),
             message(555, '!markov say something'),
+            message(777, '   !markov say something'),
         ])
         second = channel([message(111, 'Alice walks around the garden')])
         hidden = channel([message(666, 'A hidden message stays hidden')], readable=False)
@@ -74,15 +78,17 @@ class SeederTest(unittest.IsolatedAsyncioTestCase):
         await self.seeder.seed(self.guild)
 
         self.assertEqual(sentences(persistence.get_chain(self.guild)), [
-            'Alice drinks a cup of tea.',
-            'Bob plays music before dinner.',
-            'Alice walks around the garden.',
+            'Alice drinks a cup of tea',
+            'Bob plays music before dinner',
+            'Alice walks around the garden',
         ])
         self.assertEqual(sentences(persistence.get_chain(self.guild, 111)), [
-            'Alice drinks a cup of tea.', 'Alice walks around the garden.',
+            'Alice drinks a cup of tea', 'Alice walks around the garden',
         ])
-        self.assertEqual(sentences(persistence.get_chain(self.guild, 222)), ['Bob plays music before dinner.'])
-        for user_id in (333, 444, 555, 666):
+        self.assertEqual(sentences(persistence.get_chain(self.guild, 222)), ['Bob plays music before dinner'])
+        self.assertEqual(persistence.get_chain(self.guild)['state_size'], 2)
+        self.assertEqual(persistence.get_chain(self.guild, 111)['state_size'], 1)
+        for user_id in (333, 444, 555, 666, 777):
             self.assertIsNone(persistence.get_chain(self.guild, user_id))
         first.history.assert_called_once_with(limit=None)
         second.history.assert_called_once_with(limit=None)
@@ -116,13 +122,13 @@ class SeederTest(unittest.IsolatedAsyncioTestCase):
 
                 await self.seeder.reseed(self.guild)
 
-                self.assertEqual(sentences(persistence.get_chain(self.guild)), ['Fresh training text for Alice.'])
-                self.assertEqual(sentences(persistence.get_chain(self.guild, 111)), ['Fresh training text for Alice.'])
+                self.assertEqual(sentences(persistence.get_chain(self.guild)), ['Fresh training text for Alice'])
+                self.assertEqual(sentences(persistence.get_chain(self.guild, 111)), ['Fresh training text for Alice'])
                 self.assertIsNone(persistence.get_chain(self.guild, 222))
 
     async def test_author_with_untrainable_text_is_skipped_without_failing_other_models(self):
         self.guild.text_channels = [channel([
-            message(111, '(no usable text)'),
+            message(111, '```no usable code```'),
             message(222, 'This author has usable text'),
         ])]
 
@@ -130,10 +136,10 @@ class SeederTest(unittest.IsolatedAsyncioTestCase):
 
         self.assertTrue(persistence.chain_exists(self.guild))
         self.assertIsNone(persistence.get_chain(self.guild, 111))
-        self.assertEqual(sentences(persistence.get_chain(self.guild, 222)), ['This author has usable text.'])
+        self.assertEqual(sentences(persistence.get_chain(self.guild, 222)), ['This author has usable text'])
 
     async def test_empty_or_untrainable_rebuild_leaves_no_models(self):
-        for messages in ([], [message(111, 'hello')], [message(111, '(no usable text)')]):
+        for messages in ([], [message(111, 'hello')], [message(111, '```no usable code```')]):
             with self.subTest(messages=messages):
                 persistence.create_chain(self.guild, {'old': True}, {111: {'old': True}})
                 self.guild.text_channels = [channel(messages)]
@@ -171,10 +177,10 @@ class SeederTest(unittest.IsolatedAsyncioTestCase):
         ])]
         generate_chain = markov.generate_chain
 
-        def generate(messages):
+        def generate(messages, **kwargs):
             if len(messages) == 1 and messages[0].author.id == 222:
                 raise RuntimeError('Training failed')
-            return generate_chain(messages)
+            return generate_chain(messages, **kwargs)
 
         with patch('markovbot.seeder.markov.generate_chain', side_effect=generate):
             with self.assertLogs('markovbot.seeder', level='ERROR'):

@@ -18,6 +18,13 @@ def get_context(guild_id=123):
 
 
 class SayTest(unittest.IsolatedAsyncioTestCase):
+    async def test_generated_user_mentions_are_sent_intact(self):
+        ctx = get_context()
+        sentence = 'hey <@123456789012345678> come play games'
+        with patch('markovbot.commands.markov.make_sentence', return_value=sentence):
+            await say.callback(ctx)
+        ctx.channel.send.assert_awaited_once_with(sentence)
+
     async def parse(self, argument):
         ctx = get_context()
         ctx.message = SimpleNamespace(attachments=[])

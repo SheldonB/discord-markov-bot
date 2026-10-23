@@ -39,7 +39,7 @@ class Seeder:
                 log.debug('Downloading channel history for Channel(name=%s)', channel.name)
                 async for message in channel.history(limit=None):
                     author = message.author
-                    content = message.content
+                    content = message.content.lstrip()
 
                     # Conditions to insert a message into the database.
                     # 1. The author is not a bot.
@@ -66,7 +66,7 @@ class Seeder:
         skipped_authors = 0
         for user_id, user_messages in messages_by_author.items():
             try:
-                user_chain = markov.generate_chain(user_messages)
+                user_chain = markov.generate_chain(user_messages, user_model=True)
             except markov.MarkovTrainingException:
                 skipped_authors += 1
                 log.info('Skipping untrainable author User(id=%s) for Guild(id=%s)', user_id, guild.id)
