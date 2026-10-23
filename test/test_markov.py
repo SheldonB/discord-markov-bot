@@ -20,9 +20,78 @@ CHAT = [
     'your friends want to watch the old movie after dinner today',
 ]
 
+LONG_CHAT = [
+    '<@123456789012345678> Every morning we gather near the ancient oak tree before we wander through '
+    'the bustling marketplace to find fresh vegetables and share our stories about the changing seasons.',
+    '<@123456789012345678> Every evening we gather near the peaceful river bank before we wander through '
+    'the quiet village to find warm bread and share our dreams about the distant mountains.',
+]
+
+LOWERCASE_CHAT = [
+    'every morning we gather near the ancient oak tree. then we wander through the bustling marketplace '
+    'to find fresh vegetables. finally we share our stories about the changing seasons.',
+    'every evening we gather near the peaceful river bank. then we wander through the quiet village '
+    'to find warm bread. finally we share our dreams about the distant mountains.',
+]
+
 
 def train(texts=CHAT, **kwargs):
     return generate_chain([SimpleNamespace(content=text) for text in texts], **kwargs)
+
+
+class GenerationStyleTest(unittest.TestCase):
+    def setUp(self):
+        isolate_persistence(self)
+        markov.clear_model_cache()
+        self.addCleanup(markov.clear_model_cache)
+        environment = mock.patch.dict(os.environ, {}, clear=True)
+        environment.start()
+        self.addCleanup(environment.stop)
+        self.guild = get_guild()
+
+    def save_models(self, texts):
+        persistence.create_chain(self.guild, train(texts).to_dict(), {
+            456: train(texts, user_model=True).to_dict(),
+        })
+
+    def test_default_server_and_user_replies_keep_the_previous_length_floor(self):
+        self.save_models(CHAT + LONG_CHAT)
+        for user_id in (None, 456):
+            with self.subTest(user_id=user_id):
+                with mock.patch('markovify.chain.random', Random(42)):
+                    replies = [make_sentence(self.guild, user_id) for _ in range(50)]
+                self.assertTrue(all(125 <= len(reply) <= 500 for reply in replies))
+                self.assertTrue(all(reply not in CHAT + LONG_CHAT for reply in replies))
+
+    def test_user_models_keep_two_words_of_context_by_default(self):
+        self.save_models(LONG_CHAT)
+        self.assertEqual(persistence.get_chain(self.guild)['state_size'], 2)
+        self.assertEqual(persistence.get_chain(self.guild, 456)['state_size'], 2)
+
+    def test_lowercase_clauses_can_still_generate_long_recombined_replies(self):
+        self.save_models(LOWERCASE_CHAT)
+        for user_id in (None, 456):
+            with self.subTest(user_id=user_id):
+                with mock.patch('markovify.chain.random', Random(42)):
+                    sentence = make_sentence(self.guild, user_id)
+                self.assertGreaterEqual(len(sentence), 125)
+                self.assertNotIn(sentence, LOWERCASE_CHAT)
+
+    def test_sparse_models_do_not_silently_return_short_replies_by_default(self):
+        self.save_models(CHAT)
+        for user_id in (None, 456):
+            with self.subTest(user_id=user_id):
+                with self.assertRaises(MarkovGenerationException):
+                    make_sentence(self.guild, user_id)
+
+    def test_shorter_replies_and_one_word_context_remain_explicit_options(self):
+        with mock.patch.dict(os.environ, {'MARKOV_MIN_CHARS': '20', 'MARKOV_USER_STATE_SIZE': '1'}):
+            self.save_models(CHAT)
+            with mock.patch('markovify.chain.random', Random(42)):
+                sentence = make_sentence(self.guild, 456)
+        self.assertGreaterEqual(len(sentence), 20)
+        self.assertLess(len(sentence), 125)
+        self.assertEqual(persistence.get_chain(self.guild, 456)['state_size'], 1)
 
 
 class MarkovTest(unittest.TestCase):
@@ -31,9 +100,10 @@ class MarkovTest(unittest.TestCase):
         markov.clear_model_cache()
         self.addCleanup(markov.clear_model_cache)
         self.settings_patch = mock.patch.dict(os.environ, {
-            'MARKOV_MIN_CHARS': '20', 'MARKOV_MAX_CHARS': '500',
+            'MARKOV_MIN_CHARS': '125', 'MARKOV_MAX_CHARS': '500',
             'MARKOV_GENERATION_TRIES': '300', 'MARKOV_MAX_WORDS': '100',
-            'MARKOV_STATE_SIZE': '2', 'MARKOV_USER_STATE_SIZE': '1',
+            'MARKOV_STATE_SIZE': '2', 'MARKOV_USER_STATE_SIZE': '2',
+            'MARKOV_SPLIT_LOWERCASE': '0',
         })
         self.settings_patch.start()
         self.addCleanup(self.settings_patch.stop)
@@ -52,15 +122,24 @@ class MarkovTest(unittest.TestCase):
 
         self.assertEqual(result, "Hello world!")
 
-    def test_chat_boundaries_include_lowercase_newlines_and_closing_quotes(self):
+    def test_lowercase_splitting_is_optional_and_keeps_quotes_and_newline_boundaries(self):
         model = train()
-        self.assertEqual(model.sentence_split(
+        text = (
             'hello world. are you online? i am ready\n'
             'she said "good game!" let us play\nDr. Smith likes games'
-        ), [
-            'hello world.', 'are you online?', 'i am ready',
-            'she said "good game!"', 'let us play', 'Dr. Smith likes games',
+        )
+        self.assertEqual(model.sentence_split(text), [
+            'hello world. are you online? i am ready',
+            'she said "good game!" let us play', 'Dr. Smith likes games',
         ])
+        with mock.patch.dict(os.environ, {'MARKOV_SPLIT_LOWERCASE': '1'}):
+            self.assertEqual(model.sentence_split(text), [
+                'hello world.', 'are you online?', 'i am ready',
+                'she said "good game!"', 'let us play', 'Dr. Smith likes games',
+            ])
+        with mock.patch.dict(os.environ, {'MARKOV_SPLIT_LOWERCASE': '2'}):
+            with self.assertRaises(ValueError):
+                model.sentence_split(text)
 
     def test_cleanup_keeps_user_mentions_ids_slang_and_emoji(self):
         model = train([
@@ -87,8 +166,8 @@ class MarkovTest(unittest.TestCase):
 
     def test_cleanup_keeps_sentence_punctuation_after_urls(self):
         self.assertEqual(train().sentence_split(
-            'read https://example.com. then play games'
-        ), ['read.', 'then play games'])
+            'read https://example.com. Then play games'
+        ), ['read.', 'Then play games'])
 
     def test_parentheses_quotes_and_emoticons_are_trainable(self):
         texts = ['that works (usually)', 'she said "good game"', 'this is fine :)']
@@ -129,7 +208,7 @@ class MarkovTest(unittest.TestCase):
 
         from_dict_mock.assert_called_once_with(chain_dict)
         chain_mock.compile.assert_called_once_with(inplace=True)
-        chain_mock.make_short_sentence.assert_called_once_with(500, min_chars=20, tries=300, max_words=100)
+        chain_mock.make_short_sentence.assert_called_once_with(500, min_chars=125, tries=300, max_words=100)
         self.assertEqual(result, "Generated sentence")
 
     def test_make_sentence_failure_raises_exception(self):
@@ -143,7 +222,7 @@ class MarkovTest(unittest.TestCase):
                 with self.assertRaises(MarkovGenerationException):
                     make_sentence(guild)
 
-        chain_mock.make_short_sentence.assert_called_once_with(500, min_chars=20, tries=300, max_words=100)
+        chain_mock.make_short_sentence.assert_called_once_with(500, min_chars=125, tries=300, max_words=100)
 
     def test_make_sentence_selects_server_or_user_without_changing_generation_settings(self):
         guild = get_guild()
@@ -155,7 +234,7 @@ class MarkovTest(unittest.TestCase):
                     with mock.patch.object(CustomMarkovText, 'from_dict', return_value=model):
                         self.assertEqual(make_sentence(guild, user_id), 'A generated sentence')
                 get_chain.assert_called_once_with(guild, user_id)
-                model.make_short_sentence.assert_called_once_with(500, min_chars=20, tries=300, max_words=100)
+                model.make_short_sentence.assert_called_once_with(500, min_chars=125, tries=300, max_words=100)
 
     def test_missing_chain_is_a_controlled_error(self):
         for user_id in (None, 456):
@@ -194,10 +273,10 @@ class MarkovTest(unittest.TestCase):
 
     def test_server_and_user_context_sizes_are_independently_configurable(self):
         self.assertEqual(train().state_size, 2)
-        self.assertEqual(train(user_model=True).state_size, 1)
-        with mock.patch.dict(os.environ, {'MARKOV_STATE_SIZE': '3', 'MARKOV_USER_STATE_SIZE': '2'}):
+        self.assertEqual(train(user_model=True).state_size, 2)
+        with mock.patch.dict(os.environ, {'MARKOV_STATE_SIZE': '3', 'MARKOV_USER_STATE_SIZE': '1'}):
             self.assertEqual(CustomMarkovText.from_json(train().to_json()).state_size, 3)
-            self.assertEqual(train(user_model=True).state_size, 2)
+            self.assertEqual(train(user_model=True).state_size, 1)
         for value in ('0', '4', 'invalid'):
             with self.subTest(value=value):
                 with mock.patch.dict(os.environ, {'MARKOV_STATE_SIZE': value}):
@@ -230,12 +309,12 @@ class ModelCacheTest(unittest.TestCase):
         markov.clear_model_cache()
         self.addCleanup(markov.clear_model_cache)
         self.guild = get_guild()
-        self.chain = train().to_dict()
+        self.chain = train(LONG_CHAT).to_dict()
         persistence.create_chain(self.guild, self.chain, {456: self.chain})
 
     def test_legacy_server_only_records_still_generate_with_originality_checks(self):
         guild = MockGuild(id=987)
-        texts = [text + '.' for text in CHAT]
+        texts = LONG_CHAT
         legacy_chain = markovify.Text(texts).to_dict()
         persistence.ChainDB.insert({'guild_id': guild.id, 'chain': legacy_chain})
         sentence = make_sentence(guild)
@@ -251,7 +330,7 @@ class ModelCacheTest(unittest.TestCase):
                 make_sentence(self.guild)
                 self.assertEqual(restore.call_count, 1)
                 self.assertEqual(read.call_count, 1)
-                replacement_text = [text.replace('game', 'puzzle').replace('movie', 'show') for text in CHAT]
+                replacement_text = [text.replace('vegetables', 'fruit').replace('bread', 'cake') for text in LONG_CHAT]
                 persistence.create_chain(self.guild, train(replacement_text).to_dict())
                 sentence = make_sentence(self.guild)
                 self.assertEqual(restore.call_count, 2)
